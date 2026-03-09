@@ -10,12 +10,11 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Crawler {
     public static ArrayList<HTMLPage> parse(String startingLink, int numPagesToCrawl) throws IOException{
         ArrayList<HTMLPage> pages = new ArrayList<>();
-        ConcurrentLinkedQueue<String> linksToVisit = new ConcurrentLinkedQueue<>();
+        Queue<String> linksToVisit = new LinkedList<>();
         linksToVisit.add(startingLink);
 
         HashSet<String> visitedLinks = new HashSet<>();

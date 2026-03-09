@@ -1,7 +1,5 @@
 package comp4321.searchengine;
 
-import comp4321.searchengine.Crawler;
-
 import java.io.IOException;
 import java.util.ArrayList;
 
