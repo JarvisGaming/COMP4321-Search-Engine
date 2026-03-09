@@ -9,16 +9,31 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Optional;
-
-import comp4321.searchengine.HTMLPage;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Crawler {
-    public static void parse(int numPagesToCrawl) throws IOException{
-        String link = "https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm";
-        Optional<HTMLPage> parseResult = parseOnePage(link);
-        if (parseResult.isPresent()) System.out.println(parseResult);
+    public static ArrayList<HTMLPage> parse(String startingLink, int numPagesToCrawl) throws IOException{
+        ArrayList<HTMLPage> pages = new ArrayList<>();
+        ConcurrentLinkedQueue<String> linksToVisit = new ConcurrentLinkedQueue<>();
+        linksToVisit.add(startingLink);
+
+        HashSet<String> visitedLinks = new HashSet<>();
+
+        // Crawl up to numPagesToCrawl pages using BFS
+        while (!linksToVisit.isEmpty() && visitedLinks.size() < numPagesToCrawl){
+            String link = linksToVisit.remove();
+            Optional<HTMLPage> parseResult = parseOnePage(link);
+
+            if (parseResult.isPresent()){
+                HTMLPage page = parseResult.get();
+                pages.add(page);
+                visitedLinks.add(link);
+                linksToVisit.addAll(page.links());
+            }
+        }
+
+        return pages;
     }
 
     public static Optional<HTMLPage> parseOnePage(String link) throws IOException {
