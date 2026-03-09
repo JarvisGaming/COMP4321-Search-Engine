@@ -23,6 +23,8 @@ public class Crawler {
         // Crawl up to numPagesToCrawl pages using BFS
         while (!linksToVisit.isEmpty() && visitedLinks.size() < numPagesToCrawl){
             String link = linksToVisit.remove();
+            if (visitedLinks.contains(link)) continue;
+
             Optional<HTMLPage> parseResult = parseOnePage(link);
 
             if (parseResult.isPresent()){
@@ -30,6 +32,8 @@ public class Crawler {
                 pages.add(page);
                 visitedLinks.add(link);
                 linksToVisit.addAll(page.links());
+            } else {
+                System.err.printf("Crawling %s failed\n", link);
             }
         }
 
