@@ -18,7 +18,7 @@ import java.util.Arrays;
 public final class DBInterface {
     public static final Connection connection;
     public static final QueryRunner run = new QueryRunner();
-    private static String databasePath = System.getProperty("user.dir") + "/data.db";
+    private static final String databasePath = System.getProperty("user.dir") + "/data.db";
 
     // Initialize the database, and the connection to the database.
     static {
@@ -45,40 +45,47 @@ public final class DBInterface {
      */
     private static void initDatabase() throws SQLException {
         run.update(connection,
+        """
+                CREATE TABLE IF NOT EXISTS documents (
+                    "id"	INTEGER,
+                    "url"	TEXT NOT NULL UNIQUE,
+                    "title"	TEXT NOT NULL,
+                    "lastModified"	TEXT NOT NULL,
+                    "text"	TEXT,
+                    "pageSize"	INTEGER NOT NULL,
+                    "childUrls"	TEXT,
+                    PRIMARY KEY("id" AUTOINCREMENT)
+                );
             """
-                    CREATE TABLE IF NOT EXISTS documents (
-                        "id"	INTEGER,
-                        "url"	TEXT NOT NULL UNIQUE,
-                        "title"	TEXT NOT NULL,
-                        "lastModified"	TEXT NOT NULL,
-                        "text"	TEXT,
-                        "pageSize"	INTEGER NOT NULL,
-                        "childUrls"	TEXT,
-                        PRIMARY KEY("id" AUTOINCREMENT)
-                    );
-                """
         );
     }
 
     public static void addDocument(HTMLPage page) throws SQLException {
         run.update(connection,
-            """
-                    INSERT INTO documents (
-                        url,
-                        title,
-                        lastModified,
-                        text,
-                        pageSize,
-                        childUrls
-                    ) VALUES (?, ?, ?, ?, ?, ?);
-                """, page.url(), page.title(), page.lastModified(), page.text(), page.pageSizeInBytes(), String.join(", ", page.childUrls())
+        """
+                INSERT INTO documents (
+                    url,
+                    title,
+                    lastModified,
+                    text,
+                    pageSize,
+                    childUrls
+                ) VALUES (?, ?, ?, ?, ?, ?);
+            """, page.url(), page.title(), page.lastModified(), page.text(), page.pageSizeInBytes(), String.join(", ", page.childUrls())
         );
     }
 
+    public static HTMLPage getDocument(String url) throws SQLException {
+        String sql = "SELECT * FROM documents where url = ?";
+        return run.query(connection, sql, documentHandler, url).get(0);
+    }
+
     public static ArrayList<HTMLPage> getDocuments(ArrayList<String> urls) throws SQLException {
+        // rs.setArray is not implemented in SQLite JDBC
         String sql = "SELECT * FROM documents where url IN (" + "?,".repeat(urls.size());
         sql = sql.substring(0, sql.length()-1);  // Remove last comma
         sql += ")";
+
         return run.query(connection, sql, documentHandler, urls.toArray());
     }
 
@@ -92,6 +99,8 @@ public final class DBInterface {
                 LocalDateTime.parse(rs.getString("lastModified"), DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 rs.getString("text"),
                 rs.getInt("pageSize"),
+
+                // rs.getArray is not implemented in SQLite JDBC
                 new ArrayList<>(Arrays.asList(rs.getString("childUrls").split(", ")))
             ));
         }
