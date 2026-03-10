@@ -10,7 +10,10 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public final class DBInterface {
     public static final Connection connection;
@@ -38,19 +41,19 @@ public final class DBInterface {
 
     /**
      * Create tables of the database if they don't already exist.
-     * For lastModified, it is stored as text in "YYYY-MM-DDTHH:MM:SS" format.
+     * For lastModified, it is stored as text in "YYYY-MM-DDTHH:MM:SS" (ISO_LOCAL_DATE_TIME) format.
      */
     private static void initDatabase() throws SQLException {
         run.update(connection,
             """
-                    CREATE TABLE IF NOT EXISTS "documents" (
+                    CREATE TABLE IF NOT EXISTS documents (
                         "id"	INTEGER,
                         "url"	TEXT NOT NULL UNIQUE,
                         "title"	TEXT NOT NULL,
                         "lastModified"	TEXT NOT NULL,
                         "text"	TEXT,
                         "pageSize"	INTEGER NOT NULL,
-                        "childUrls"	ARRAY,
+                        "childUrls"	TEXT,
                         PRIMARY KEY("id" AUTOINCREMENT)
                     );
                 """
@@ -60,7 +63,7 @@ public final class DBInterface {
     public static void addDocument(HTMLPage page) throws SQLException {
         run.update(connection,
             """
-                    INSERT INTO "documents" (
+                    INSERT INTO documents (
                         url,
                         title,
                         lastModified,
@@ -68,23 +71,30 @@ public final class DBInterface {
                         pageSize,
                         childUrls
                     ) VALUES (?, ?, ?, ?, ?, ?);
-                """, page.url(), page.title(), page.lastModified(), page.text(), page.pageSizeInBytes(), page.childUrls()
+                """, page.url(), page.title(), page.lastModified(), page.text(), page.pageSizeInBytes(), String.join(", ", page.childUrls())
         );
     }
 
-    /** {@code ResultSetHandler} implementation to convert each row of a {@code ResultSet} into a {@code User}. */
-//    private static final ResultSetHandler<ArrayList<HTMLPage>> userHandler = rs -> {
-//        ArrayList<HTMLPage> result = new ArrayList<>();
-//
-//        while (rs.next()) {result.add(new HTMLPage(
-//                rs.getString("url"),
-//                rs.getString("title"),
-//                rs.getDate("lastModified"),
-//                rs.getString("text"),
-//                rs.getString("pageSize"),
-//                rs.getArray("childUrls")
-//                ));
-//        }
-//        return result;
-//    };
+    public static ArrayList<HTMLPage> getDocuments(ArrayList<String> urls) throws SQLException {
+        String sql = "SELECT * FROM documents where url IN (" + "?,".repeat(urls.size());
+        sql = sql.substring(0, sql.length()-1);  // Remove last comma
+        sql += ")";
+        return run.query(connection, sql, documentHandler, urls.toArray());
+    }
+
+    /** {@code ResultSetHandler} implementation to convert each row of a {@code ResultSet} into a {@code HTMLPage}. */
+    private static final ResultSetHandler<ArrayList<HTMLPage>> documentHandler = rs -> {
+        ArrayList<HTMLPage> result = new ArrayList<>();
+        while (rs.next()) {
+            result.add(new HTMLPage(
+                rs.getString("url"),
+                rs.getString("title"),
+                LocalDateTime.parse(rs.getString("lastModified"), DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                rs.getString("text"),
+                rs.getInt("pageSize"),
+                new ArrayList<>(Arrays.asList(rs.getString("childUrls").split(", ")))
+            ));
+        }
+        return result;
+    };
 }
