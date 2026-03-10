@@ -41,7 +41,7 @@ public class Crawler {
     }
 
     public static Optional<HTMLPage> parseOnePage(String link) throws IOException {
-        // ignoreContentType allows reading of headers, i.e. we can read Last-Modified
+        // ignoreContentType allows reading of HTTP headers
         Connection.Response response = Jsoup.connect(link).ignoreContentType(true).execute();
         Document doc = response.parse();
 
@@ -54,7 +54,7 @@ public class Crawler {
                 link,
                 getLastModified(response),
                 body.text(),
-                doc.html().getBytes(StandardCharsets.UTF_8).length,
+                getPageSize(response, doc),
                 getLinks(doc)
         ));
     }
@@ -71,7 +71,14 @@ public class Crawler {
     private static LocalDateTime getLastModified(Connection.Response response){
         // Website responds with a format of: "Tue, 16 May 2023 05:03:16 GMT"
         String websiteResponse = response.header("Last-Modified");
-        assert websiteResponse != null : "Last-Modified header of website is empty";
+        if (websiteResponse == null) websiteResponse = response.header("Date");
+        assert websiteResponse != null : "Both Last-Modified and Date headers are missing";
         return LocalDateTime.parse(websiteResponse, DateTimeFormatter.RFC_1123_DATE_TIME);
+    }
+
+    private static int getPageSize(Connection.Response response, Document doc){
+        String websiteResponse = response.header("Content-Length");
+        if (websiteResponse == null) return doc.html().length();
+        else return Integer.parseInt(websiteResponse);
     }
 }
