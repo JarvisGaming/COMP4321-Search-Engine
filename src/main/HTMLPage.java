@@ -8,6 +8,6 @@ public record HTMLPage(
     String title,
     LocalDateTime lastModified,
     String text,
-    int pageSizeInBytes,
+    int pageSize,
     ArrayList<String> childUrls
 ) {}

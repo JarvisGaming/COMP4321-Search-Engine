@@ -71,13 +71,13 @@ public final class DBInterface {
                     pageSize,
                     childUrls
                 ) VALUES (?, ?, ?, ?, ?, ?);
-            """, page.url(), page.title(), page.lastModified(), page.text(), page.pageSizeInBytes(), String.join(", ", page.childUrls())
+            """, page.url(), page.title(), page.lastModified(), page.text(), page.pageSize(), String.join(", ", page.childUrls())
         );
     }
 
     public static HTMLPage getDocument(String url) throws SQLException {
         String sql = "SELECT * FROM documents where url = ?";
-        return run.query(connection, sql, documentHandler, url).get(0);
+        return run.query(connection, sql, documentHandler, url).getFirst();
     }
 
     public static ArrayList<HTMLPage> getDocuments(ArrayList<String> urls) throws SQLException {
