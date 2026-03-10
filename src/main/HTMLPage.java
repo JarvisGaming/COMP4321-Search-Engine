@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public record HTMLPage(
-    String title,
     String url,
+    String title,
     LocalDateTime lastModified,
     String text,
     int pageSizeInBytes,
-    ArrayList<String> links
+    ArrayList<String> childUrls
 ) {}

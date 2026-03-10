@@ -7,13 +7,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Crawler {
-    public static ArrayList<HTMLPage> parse(String startingLink, int numPagesToCrawl) throws IOException{
+    public static ArrayList<HTMLPage> parse(String startingLink, int numPagesToCrawl) throws IOException {
         ArrayList<HTMLPage> pages = new ArrayList<>();
         Queue<String> linksToVisit = new LinkedList<>();
         linksToVisit.add(startingLink);
@@ -31,7 +30,7 @@ public class Crawler {
                 HTMLPage page = parseResult.get();
                 pages.add(page);
                 visitedLinks.add(link);
-                linksToVisit.addAll(page.links());
+                linksToVisit.addAll(page.childUrls());
             } else {
                 System.err.printf("Crawling %s failed\n", link);
             }
@@ -40,7 +39,7 @@ public class Crawler {
         return pages;
     }
 
-    public static Optional<HTMLPage> parseOnePage(String link) throws IOException {
+    private static Optional<HTMLPage> parseOnePage(String link) throws IOException {
         // ignoreContentType allows reading of HTTP headers
         Connection.Response response = Jsoup.connect(link).ignoreContentType(true).execute();
         Document doc = response.parse();
@@ -50,8 +49,8 @@ public class Crawler {
         if (body == null) return Optional.empty();
 
         return Optional.of(new HTMLPage(
-                doc.title(),
                 link,
+                doc.title(),
                 getLastModified(response),
                 body.text(),
                 getPageSize(response, doc),
