@@ -7,6 +7,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -53,6 +54,7 @@ public class Crawler {
                 link,
                 getLastModified(response),
                 body.text(),
+                doc.html().getBytes(StandardCharsets.UTF_8).length,
                 getLinks(doc)
         ));
     }

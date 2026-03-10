@@ -8,9 +8,6 @@ public record HTMLPage(
     String url,
     LocalDateTime lastModified,
     String text,
+    int pageSizeInBytes,
     ArrayList<String> links
-) {
-    int pageSize(){
-        return text.length();
-    }
-}
+) {}
