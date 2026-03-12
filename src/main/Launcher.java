@@ -16,7 +16,8 @@ public class Launcher {
             DBInterface.addDocument(doc);
         }
 
-//        ArrayList<String> docUrls = res.stream().map(HTMLPage::url).collect(Collectors.toCollection(ArrayList::new));
-//        System.out.println(DBInterface.getDocuments(docUrls));
+        ArrayList<String> docUrls = res.stream().map(HTMLPage::url).collect(Collectors.toCollection(ArrayList::new));
+        System.out.println("Newly crawled docs (not in DB, or in DB but needs updating):");
+        System.out.println(DBInterface.getDocuments(docUrls));
     }
 }
