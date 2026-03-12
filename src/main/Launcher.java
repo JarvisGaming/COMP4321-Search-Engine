@@ -16,7 +16,7 @@ public class Launcher {
             DBInterface.addDocument(doc);
         }
 
-        ArrayList<String> docUrls = res.stream().map(HTMLPage::url).collect(Collectors.toCollection(ArrayList::new));
-        System.out.println(DBInterface.getDocuments(docUrls));
+//        ArrayList<String> docUrls = res.stream().map(HTMLPage::url).collect(Collectors.toCollection(ArrayList::new));
+//        System.out.println(DBInterface.getDocuments(docUrls));
     }
 }

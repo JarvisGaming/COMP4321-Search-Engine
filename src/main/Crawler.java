@@ -7,12 +7,13 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Crawler {
-    public static ArrayList<HTMLPage> parse(String startingLink, int numPagesToCrawl) throws IOException {
+    public static ArrayList<HTMLPage> parse(String startingLink, int numPagesToCrawl) throws IOException, SQLException {
         ArrayList<HTMLPage> pages = new ArrayList<>();
         Queue<String> linksToVisit = new LinkedList<>();
         linksToVisit.add(startingLink);
@@ -22,15 +23,25 @@ public class Crawler {
         // Crawl up to numPagesToCrawl pages using BFS
         while (!linksToVisit.isEmpty() && visitedLinks.size() < numPagesToCrawl){
             String link = linksToVisit.remove();
-            if (visitedLinks.contains(link)) continue;
 
-            Optional<HTMLPage> parseResult = parseOnePage(link);
+            // Check if the site is already visited during THIS crawl
+            if (visitedLinks.contains(link)) {
+                System.out.println(link + " is already visited");
+                continue;
+            }
+
+            // ignoreContentType allows reading of HTTP headers
+            Connection.Response response = Jsoup.connect(link).ignoreContentType(true).execute();
+
+            // We want to crawl children, regardless of whether the doc is up-to-date in db
+            Optional<HTMLPage> parseResult = parseOnePage(link, response);
 
             if (parseResult.isPresent()){
                 HTMLPage page = parseResult.get();
-                pages.add(page);
                 visitedLinks.add(link);
                 linksToVisit.addAll(page.childUrls());
+
+                if (!docUpToDateInDB(link, response)) pages.add(page);
             } else {
                 System.err.printf("Crawling %s failed\n", link);
             }
@@ -39,9 +50,27 @@ public class Crawler {
         return pages;
     }
 
-    private static Optional<HTMLPage> parseOnePage(String link) throws IOException {
-        // ignoreContentType allows reading of HTTP headers
-        Connection.Response response = Jsoup.connect(link).ignoreContentType(true).execute();
+    private static boolean docUpToDateInDB(String link, Connection.Response response) throws SQLException {
+        // Check if not in index
+        Optional<HTMLPage> res = DBInterface.getDocument(link);
+        if (res.isEmpty()) {
+            System.out.println(link + " is not in DB");
+            return false;
+        }
+
+        // Check if in index, but modification date is later than the one in db
+        LocalDateTime lastModifiedInDB = res.get().lastModified();
+        LocalDateTime lastModifiedOnWebsite = getLastModified(response);
+        if (lastModifiedOnWebsite.isAfter(lastModifiedInDB)){
+            System.out.println(link + ": lastModifiedInDB (" + lastModifiedInDB + ") vs lastModifiedOnWebsite (" + lastModifiedOnWebsite + ")");
+            return false;
+        }
+
+        System.out.println(link + " is in DB, and is up to date");
+        return true;
+    }
+
+    private static Optional<HTMLPage> parseOnePage(String link, Connection.Response response) throws IOException {
         Document doc = response.parse();
 
         Element body = doc.getElementsByTag("body").first();

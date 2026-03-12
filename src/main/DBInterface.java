@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 
 public final class DBInterface {
     public static final Connection connection;
@@ -61,29 +62,47 @@ public final class DBInterface {
     }
 
     public static void addDocument(HTMLPage page) throws SQLException {
-        run.update(connection,
-        """
-                INSERT INTO documents (
-                    url,
-                    title,
-                    lastModified,
-                    text,
-                    pageSize,
-                    childUrls
-                ) VALUES (?, ?, ?, ?, ?, ?);
-            """, page.url(), page.title(), page.lastModified(), page.text(), page.pageSize(), String.join(", ", page.childUrls())
-        );
+        if (getDocument(page.url()).isPresent()){
+            run.update(connection,
+                """
+                        UPDATE documents SET
+                            title = ?,
+                            lastModified = ?,
+                            text = ?,
+                            pageSize = ?,
+                            childUrls = ?
+                        WHERE url = ?
+                    """, page.title(), page.lastModified(), page.text(), page.pageSize(), String.join(", ", page.childUrls()), page.url()
+            );
+        } else {
+            run.update(connection,
+            """
+                    INSERT INTO documents (
+                        url,
+                        title,
+                        lastModified,
+                        text,
+                        pageSize,
+                        childUrls
+                    ) VALUES (?, ?, ?, ?, ?, ?);
+                """, page.url(), page.title(), page.lastModified(), page.text(), page.pageSize(), String.join(", ", page.childUrls())
+            );
+        }
+
+
     }
 
-    public static HTMLPage getDocument(String url) throws SQLException {
+    public static Optional<HTMLPage> getDocument(String url) throws SQLException {
         String sql = "SELECT * FROM documents where url = ?";
-        return run.query(connection, sql, documentHandler, url).getFirst();
+        ArrayList<HTMLPage> res = run.query(connection, sql, documentHandler, url);
+        if (res.isEmpty()) return Optional.empty();
+        else return Optional.of(res.getFirst());
     }
 
     public static ArrayList<HTMLPage> getDocuments(ArrayList<String> urls) throws SQLException {
         // rs.setArray is not implemented in SQLite JDBC
         String sql = "SELECT * FROM documents where url IN (" + "?,".repeat(urls.size());
-        sql = sql.substring(0, sql.length()-1);  // Remove last comma
+        if (!urls.isEmpty()) sql = sql.substring(0, sql.length()-1);  // Remove last comma
         sql += ")";
 
         return run.query(connection, sql, documentHandler, urls.toArray());
