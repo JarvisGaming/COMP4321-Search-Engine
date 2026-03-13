@@ -1,5 +1,3 @@
-package comp4321.searchengine;
-
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -10,7 +8,11 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Optional;
+import java.util.Queue;
 
 public class Crawler {
     public static ArrayList<HTMLPage> parse(String startingLink, int numPagesToCrawl) throws IOException, SQLException {
@@ -21,7 +23,7 @@ public class Crawler {
         HashSet<String> visitedLinks = new HashSet<>();
 
         // Crawl up to numPagesToCrawl pages using BFS
-        while (!linksToVisit.isEmpty() && visitedLinks.size() < numPagesToCrawl){
+        while (!linksToVisit.isEmpty() && visitedLinks.size() < numPagesToCrawl) {
             String link = linksToVisit.remove();
 
             // Check if the site is already visited during THIS crawl
@@ -36,7 +38,7 @@ public class Crawler {
             // We want to crawl children, regardless of whether the doc is up-to-date in db
             Optional<HTMLPage> parseResult = parseOnePage(link, response);
 
-            if (parseResult.isPresent()){
+            if (parseResult.isPresent()) {
                 HTMLPage page = parseResult.get();
                 visitedLinks.add(link);
                 linksToVisit.addAll(page.childUrls());
@@ -61,7 +63,7 @@ public class Crawler {
         // Check if in index, but modification date is later than the one in db
         LocalDateTime lastModifiedInDB = res.get().lastModified();
         LocalDateTime lastModifiedOnWebsite = getLastModified(response);
-        if (lastModifiedOnWebsite.isAfter(lastModifiedInDB)){
+        if (lastModifiedOnWebsite.isAfter(lastModifiedInDB)) {
             System.out.println(link + ": lastModifiedInDB (" + lastModifiedInDB + ") vs lastModifiedOnWebsite (" + lastModifiedOnWebsite + ")");
             return false;
         }
@@ -87,16 +89,16 @@ public class Crawler {
         ));
     }
 
-    private static ArrayList<String> getLinks(Document doc){
+    private static ArrayList<String> getLinks(Document doc) {
         ArrayList<String> links = new ArrayList<>();
         Elements anchors = doc.select("a[href]");
-        for (Element anchor : anchors){
+        for (Element anchor : anchors) {
             links.add(anchor.absUrl("href"));
         }
         return links;
     }
 
-    private static LocalDateTime getLastModified(Connection.Response response){
+    private static LocalDateTime getLastModified(Connection.Response response) {
         // Website responds with a format of: "Tue, 16 May 2023 05:03:16 GMT"
         String websiteResponse = response.header("Last-Modified");
         if (websiteResponse == null) websiteResponse = response.header("Date");
@@ -104,7 +106,7 @@ public class Crawler {
         return LocalDateTime.parse(websiteResponse, DateTimeFormatter.RFC_1123_DATE_TIME);
     }
 
-    private static int getPageSize(Connection.Response response, Document doc){
+    private static int getPageSize(Connection.Response response, Document doc) {
         String websiteResponse = response.header("Content-Length");
         if (websiteResponse == null) return doc.html().length();
         else return Integer.parseInt(websiteResponse);
