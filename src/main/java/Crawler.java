@@ -13,8 +13,12 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
+import java.lang.System.Logger;
 
-public class Crawler {
+
+public final class Crawler {
+    private static final Logger logger = System.getLogger(Crawler.class.getName());
+
     public static ArrayList<HTMLPage> parse(String startingLink, int numPagesToCrawl) throws IOException, SQLException {
         ArrayList<HTMLPage> pages = new ArrayList<>();
         Queue<String> linksToVisit = new LinkedList<>();
@@ -28,7 +32,7 @@ public class Crawler {
 
             // Check if the site is already visited during THIS crawl
             if (visitedLinks.contains(link)) {
-                System.out.println(link + " is already visited");
+                logger.log(Logger.Level.INFO, link + " is already visited");
                 continue;
             }
 
@@ -45,7 +49,7 @@ public class Crawler {
 
                 if (!docUpToDateInDB(link, response)) pages.add(page);
             } else {
-                System.err.printf("Crawling %s failed\n", link);
+                logger.log(Logger.Level.ERROR, "Crawling %s failed\n", link);
             }
         }
 
@@ -56,7 +60,7 @@ public class Crawler {
         // Check if not in index
         Optional<HTMLPage> res = DBInterface.getDocument(link);
         if (res.isEmpty()) {
-            System.out.println(link + " is not in DB");
+            logger.log(Logger.Level.INFO, link + " is not in DB");
             return false;
         }
 
@@ -64,11 +68,11 @@ public class Crawler {
         LocalDateTime lastModifiedInDB = res.get().lastModified();
         LocalDateTime lastModifiedOnWebsite = getLastModified(response);
         if (lastModifiedOnWebsite.isAfter(lastModifiedInDB)) {
-            System.out.println(link + ": lastModifiedInDB (" + lastModifiedInDB + ") vs lastModifiedOnWebsite (" + lastModifiedOnWebsite + ")");
+            logger.log(Logger.Level.INFO, link + ": lastModifiedInDB (" + lastModifiedInDB + ") vs lastModifiedOnWebsite (" + lastModifiedOnWebsite + ")");
             return false;
         }
 
-        System.out.println(link + " is in DB, and is up to date");
+        logger.log(Logger.Level.INFO, link + " is in DB, and is up to date");
         return true;
     }
 
