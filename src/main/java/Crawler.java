@@ -47,7 +47,8 @@ public final class Crawler {
                 visitedLinks.add(link);
                 linksToVisit.addAll(page.childUrls());
 
-                if (!docUpToDateInDB(link, response)) pages.add(page);
+                //if (!docUpToDateInDB(link, response)) pages.add(page);
+                pages.add(page);
             } else {
                 logger.log(Logger.Level.ERROR, "Crawling %s failed\n", link);
             }

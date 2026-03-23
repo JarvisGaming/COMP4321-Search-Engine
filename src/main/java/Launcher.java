@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -17,5 +19,18 @@ public class Launcher {
         ArrayList<String> docUrls = res.stream().map(HTMLPage::url).collect(Collectors.toCollection(ArrayList::new));
         System.out.println("Newly crawled docs (not in DB, or in DB but needs updating):");
         System.out.println(DBInterface.getDocuments(docUrls));
+
+        Connection conn = DriverManager.getConnection("jdbc:sqlite:globalInvertedIndex.db");
+        InvertedIndex index = new InvertedIndex(conn); //
+
+        StopStem stopStem = new StopStem("/Users/yiuwah/Library/Mobile Documents/com~apple~CloudDocs/HKUST/2526S/COMP 4321/Project/COMP4321-Search-Engine/src/main/java/IRUtilities/stopwords.txt"); //repalce by relative path later
+        for (HTMLPage doc : res) {
+            stopStem.processBody(doc.title(), doc.text(), index);
+        }
+
+        System.out.println(index.getAllPostings()); // To get the global inverted list
+        System.out.println(index.getAllPostings().get("new")); // To get the global inverted list, query for keyword "new"
+        System.out.println(index.getTermsForDoc("Test page")); //To get the local inverted list for a specific file
+        System.out.println(index.getTermsForDoc("Test page").get("new")); //To get the local inverted list for a specific file, query about the frequency of a specific term
     }
 }

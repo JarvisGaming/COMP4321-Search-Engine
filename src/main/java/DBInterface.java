@@ -126,4 +126,14 @@ public final class DBInterface {
         }
         return result;
     };
+    public static void addPosting(String term, String docId, int frequency) throws SQLException {
+        run.update(connection,
+                "INSERT INTO inverted_index (term, docId, frequency) VALUES (?, ?, ?) " +
+                        "ON CONFLICT(term, docId) DO UPDATE SET frequency = excluded.frequency",
+                term, docId, frequency
+        );
+    }
+
 }
+
+
