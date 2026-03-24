@@ -5,39 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2bac9128-bf66-4a0d-90ac-dc2e9d255340" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/MainCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/CrawlCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/Crawler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/DocumentRecord.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/util/URIUtil.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/stopwords.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mvnw" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mvnw.cmd" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Crawler.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/DBInterface.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/HTMLPage.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/IRUtilities/NewString.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/IRUtilities/Porter.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Indexer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/InvertedIndex.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Launcher.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/StopStem.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/CrawlCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/CrawlCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/Crawler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/Crawler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/DocumentRecord.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/DocumentRecord.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/util/URIUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/util/URIUtil.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -131,7 +104,7 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
     &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Rebasing HTGAzureX1212/gradle-rewrite&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;HTGAzureX1212/gradle-rewrite&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -287,8 +260,7 @@
       <updated>1751516395923</updated>
       <workItem from="1751516397033" duration="46000" />
       <workItem from="1773986455323" duration="5000" />
-      <workItem from="1774261472926" duration="33998000" />
-      <workItem from="1774413439228" duration="7000" />
+      <workItem from="1774261472926" duration="40356000" />
     </task>
     <servers />
   </component>

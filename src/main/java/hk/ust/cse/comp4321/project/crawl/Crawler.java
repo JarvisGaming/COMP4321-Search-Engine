@@ -1,11 +1,11 @@
 package hk.ust.cse.comp4321.project.crawl;
 
+import hk.ust.cse.comp4321.project.util.NLPUtil;
 import hk.ust.cse.comp4321.project.util.URIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.net.URL;
@@ -15,10 +15,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
 
 @SuppressWarnings("UrlHashCode")
 public class Crawler {
@@ -58,15 +61,24 @@ public class Crawler {
             try {
                 response = Jsoup.connect(current.url.toString()).maxBodySize(0).followRedirects(false).execute();
 
-                Document doc = response.parse();
-                // Element body = doc.getElementsByTag("body").first();
+                Document document = response.parse();
+                List<String> words = NLPUtil.extractWords(document)
+                        .stream()
+                        .filter(NLPUtil::isAlphaNumeric)
+                        .filter(NLPUtil::isNotStopword)
+                        .map(NLPUtil::stem)
+                        .toList();
+                Map<String, Long> frequencyTable = words
+                        .stream()
+                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-                List<URL> childUrls = linksFromDocument(doc);
+                List<URL> childUrls = linksFromDocument(document);
                 DocumentRecord rec = new DocumentRecord(
-                        doc.title(),
+                        document.title(),
                         current.url,
                         lastModifiedTimeOfResponse(response),
-                        pageSizeOfResponseOrDocument(response, doc),
+                        frequencyTable,
+                        pageSizeOfResponseOrDocument(response, document),
                         childUrls
                 );
                 visited.add(current.url);

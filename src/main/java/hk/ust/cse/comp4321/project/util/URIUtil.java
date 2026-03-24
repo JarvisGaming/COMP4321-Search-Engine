@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.net.URL;
 
+
 public class URIUtil {
     public static @Nullable URL toURLWithoutFragment(String urlString) {
         try {
