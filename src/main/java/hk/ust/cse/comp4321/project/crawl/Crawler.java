@@ -85,7 +85,7 @@ public class Crawler {
                 records.add(rec);
 
                 urlQueue.addAll(childUrls.stream().map(it -> new PendingURL(it, current.depth + 1)).toList());
-            } catch (IOException _) {
+            } catch (IOException ignored) {
             }
         }
     }

@@ -11,7 +11,7 @@ public class URIUtil {
         try {
             URI uri = new URI(urlString);
             return new URI(uri.getScheme(), uri.getRawSchemeSpecificPart(), null).toURL();
-        } catch (Exception _) {
+        } catch (Exception ignored) {
             return null;
         }
     }

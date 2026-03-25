@@ -23,7 +23,7 @@ public class CrawlCommand implements Runnable {
         URL url;
         try {
             url = new URI(rootURL).toURL();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             System.err.println("error: invalid root url \"" + rootURL + "\"");
             return;
         }

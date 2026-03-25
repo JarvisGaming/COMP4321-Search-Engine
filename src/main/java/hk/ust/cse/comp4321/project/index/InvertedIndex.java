@@ -7,7 +7,7 @@ import org.rocksdb.RocksDBException;
 import java.util.TreeSet;
 
 public class InvertedIndex extends RocksDatabaseMap<String, TreeSet<Pair<Integer, Integer>>> {
-    private InvertedIndex(String indexDatabaseName) throws RocksDBException {
-        super(indexDatabaseName);
+    private InvertedIndex(String databaseName) throws RocksDBException {
+        super(databaseName);
     }
 }

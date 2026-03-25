@@ -5,9 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2bac9128-bf66-4a0d-90ac-dc2e9d255340" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/globalInvertedIndex.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/IRUtilities/stopwords.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/index/InvertedIndex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/index/InvertedIndex.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/stopwords.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/stopwords.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,7 +119,7 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected="Application.Main">
+  <component name="RunManager" selected="Gradle.project [assembleDist]">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="hk.ust.cse.comp4321.project.Main" />
       <module name="project.main" />
@@ -240,11 +243,11 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.project [assembleDist]" />
         <item itemvalue="Gradle.project [distZip]" />
-        <item itemvalue="Application.Main" />
         <item itemvalue="Gradle.project [build]" />
         <item itemvalue="Gradle.project [buildDependents]" />
+        <item itemvalue="Gradle.project [assembleDist]" />
+        <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
   </component>
@@ -260,6 +263,7 @@
       <workItem from="1774261472926" duration="40558000" />
       <workItem from="1774362564974" duration="5571000" />
       <workItem from="1774401025683" duration="1311000" />
+      <workItem from="1774442527923" duration="3542000" />
     </task>
     <servers />
   </component>

@@ -23,7 +23,7 @@ public class StopwordStem {
              InputStreamReader isReader = new InputStreamReader(stream, StandardCharsets.UTF_8);
              BufferedReader bReader = new BufferedReader(isReader)) {
             temp = bReader.lines().collect(Collectors.toCollection(HashSet::new));
-        } catch (Exception _) {
+        } catch (Exception ignored) {
             temp = new HashSet<>();
         }
         stopwords = temp;
