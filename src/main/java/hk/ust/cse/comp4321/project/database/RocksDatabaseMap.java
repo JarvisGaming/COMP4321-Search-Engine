@@ -10,7 +10,10 @@ import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class RocksDatabaseMap<K extends Serializable, V extends Serializable> {
     private final RocksDB database;
@@ -32,6 +35,10 @@ public class RocksDatabaseMap<K extends Serializable, V extends Serializable> {
 
     public Optional<V> get(K key) throws ClassCastException, SerializationException, RocksDBException {
         return Optional.ofNullable(database.get(SerializationUtils.serialize(key))).map(SerializationUtils::deserialize);
+    }
+
+    public Stream<Map.Entry<K, V>> stream() {
+        return StreamSupport.stream(new RocksSpliterator<>(database.newIterator()), false);
     }
 
     public void put(K key, V value) throws SerializationException, RocksDBException {

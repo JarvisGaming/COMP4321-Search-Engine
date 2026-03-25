@@ -1,5 +1,6 @@
 package hk.ust.cse.comp4321.project.crawl;
 
+import org.rocksdb.RocksDBException;
 import picocli.CommandLine.*;
 
 import java.net.URI;
@@ -28,10 +29,18 @@ public class CrawlCommand implements Runnable {
             return;
         }
 
-        Crawler crawler = new Crawler(url, maxPages, maxDepth);
-        crawler.crawl();
+        Crawler crawler;
+        try {
+            crawler = new Crawler(url, maxPages, maxDepth);
+        } catch (RocksDBException ignored) {
+            System.err.println("error: failed to initialize crawler document record index");
+            return;
+        }
 
+        crawler.crawl();
         List<DocumentRecord> records = crawler.documentRecords();
         System.out.println("info: crawler has retrieved " + records.size() + " documents after crawling");
+
+        crawler.updateIndexes();
     }
 }

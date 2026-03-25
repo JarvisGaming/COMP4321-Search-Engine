@@ -1,5 +1,6 @@
 package hk.ust.cse.comp4321.project.crawl;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,4 +14,4 @@ public record DocumentRecord(
         Map<String, Long> wordFrequencyTable,
         int pageSize,
         List<URL> childURLs
-) {}
+) implements Serializable {}

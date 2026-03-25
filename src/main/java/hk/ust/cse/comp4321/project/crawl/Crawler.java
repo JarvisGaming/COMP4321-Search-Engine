@@ -1,11 +1,14 @@
 package hk.ust.cse.comp4321.project.crawl;
 
+import hk.ust.cse.comp4321.project.index.DocumentIndex;
+import hk.ust.cse.comp4321.project.index.RecordIndex;
 import hk.ust.cse.comp4321.project.util.NLPUtil;
 import hk.ust.cse.comp4321.project.util.URIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.rocksdb.RocksDBException;
 
 import java.io.IOException;
 import java.net.URL;
@@ -25,6 +28,8 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("UrlHashCode")
 public class Crawler {
+    private final DocumentIndex documentIndex;
+    private final RecordIndex recordIndex;
     private final List<DocumentRecord> records;
     private final Queue<PendingURL> urlQueue;
     private final Set<URL> visited;
@@ -33,7 +38,9 @@ public class Crawler {
 
     private int retrieved = 0;
 
-    public Crawler(URL rootURL, int maxPages, int maxDepth) {
+    public Crawler(URL rootURL, int maxPages, int maxDepth) throws RocksDBException {
+        this.documentIndex = DocumentIndex.getInstance();
+        this.recordIndex = RecordIndex.getInstance();
         this.records = new ArrayList<>();
         this.maxPages = maxPages;
         this.maxDepth = maxDepth;
@@ -92,6 +99,16 @@ public class Crawler {
 
     public List<DocumentRecord> documentRecords() {
         return this.records;
+    }
+
+    public void updateIndexes() {
+        this.records.forEach(record -> {
+            int nextID = this.documentIndex.incrementID();
+            try {
+                recordIndex.put(nextID, record);
+            } catch (RocksDBException ignored) {
+            }
+        });
     }
 
     private @NotNull LocalDateTime lastModifiedTimeOfResponse(@NotNull Connection.Response response) {
