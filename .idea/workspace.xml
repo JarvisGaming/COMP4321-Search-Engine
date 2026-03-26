@@ -7,9 +7,6 @@
     <list default="true" id="2bac9128-bf66-4a0d-90ac-dc2e9d255340" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/Crawler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/crawl/Crawler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/database/RocksDatabaseMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/database/RocksDatabaseMap.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/database/RocksSpliterator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/database/RocksSpliterator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/index/DocumentIndex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hk/ust/cse/comp4321/project/index/DocumentIndex.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -267,7 +264,7 @@
       <workItem from="1774401025683" duration="1311000" />
       <workItem from="1774442527923" duration="3542000" />
       <workItem from="1774446698890" duration="8288000" />
-      <workItem from="1774455749363" duration="3019000" />
+      <workItem from="1774455749363" duration="3671000" />
     </task>
     <servers />
   </component>

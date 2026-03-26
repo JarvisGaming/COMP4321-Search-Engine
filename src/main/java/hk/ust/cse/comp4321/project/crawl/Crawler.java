@@ -20,8 +20,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -102,15 +104,29 @@ public class Crawler {
     }
 
     public void updateIndexes() {
+        AtomicInteger recordsAdded = new AtomicInteger();
+        AtomicInteger recordsModified = new AtomicInteger();
         this.records.forEach(record -> {
-            int nextID = this.documentIndex.incrementID();
             try {
-                documentIndex.put(record.url().toString(), nextID);
-                recordIndex.put(nextID, record);
+                Optional<Integer> key = documentIndex.get(record.url().toString());
+                if (key.isPresent()) {
+                    Optional<DocumentRecord> recordinDatabase = recordIndex.get(key.get());
+                    if (recordinDatabase.isPresent() && !recordinDatabase.get().lastModificationTimestamp().equals(record.lastModificationTimestamp())) {
+                        recordsModified.getAndIncrement();
+                    }
+                } else {
+                    key = Optional.of(documentIndex.incrementID());
+                    documentIndex.put(record.url().toString(), key.get());
+                    recordsAdded.getAndIncrement();
+                }
+
+                recordIndex.put(key.get(), record);
             } catch (RocksDBException ignored) {
                 System.err.println("warning: failed to add url " + record.url() + " to databases");
             }
         });
+
+        System.out.println("info: " + recordsAdded + " added, " + recordsModified + " modified");
     }
 
     private @NotNull LocalDateTime lastModifiedTimeOfResponse(@NotNull Connection.Response response) {
