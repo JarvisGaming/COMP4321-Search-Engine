@@ -18,6 +18,10 @@ public class RocksSpliterator<K extends Serializable, V extends Serializable> im
         this.iterator.seekToFirst();
     }
 
+    public void close() {
+        this.iterator.close();
+    }
+
     @Override
     public boolean tryAdvance(Consumer<? super Map.Entry<K, V>> action) {
         if (!this.iterator.isValid())

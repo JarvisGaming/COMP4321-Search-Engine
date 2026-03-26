@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+
 public class RocksDatabaseMap<K extends Serializable, V extends Serializable> {
     private final RocksDB database;
 
@@ -38,7 +39,8 @@ public class RocksDatabaseMap<K extends Serializable, V extends Serializable> {
     }
 
     public Stream<Map.Entry<K, V>> stream() {
-        return StreamSupport.stream(new RocksSpliterator<>(database.newIterator()), false);
+        RocksSpliterator<K, V> iterator = new RocksSpliterator<>(database.newIterator());
+        return StreamSupport.stream(iterator, false).onClose(iterator::close);
     }
 
     public void put(K key, V value) throws SerializationException, RocksDBException {

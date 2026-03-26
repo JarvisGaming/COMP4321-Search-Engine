@@ -105,8 +105,10 @@ public class Crawler {
         this.records.forEach(record -> {
             int nextID = this.documentIndex.incrementID();
             try {
+                documentIndex.put(record.url().toString(), nextID);
                 recordIndex.put(nextID, record);
             } catch (RocksDBException ignored) {
+                System.err.println("warning: failed to add url " + record.url() + " to databases");
             }
         });
     }

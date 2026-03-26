@@ -8,9 +8,11 @@ import java.util.Map;
 import java.util.Optional;
 
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class DocumentIndex extends RocksDatabaseMap<String, Integer> {
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static Optional<DocumentIndex> INSTANCE = Optional.empty();
+
+    private Integer nextID = null;
 
     public static synchronized @NotNull DocumentIndex getInstance() throws RocksDBException {
         if (INSTANCE.isPresent())
@@ -25,7 +27,15 @@ public class DocumentIndex extends RocksDatabaseMap<String, Integer> {
     }
 
     public synchronized int incrementID() {
-        Integer max = this.stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getValue).orElse(0);
-        return max + 1;
+        nextID = this.nextID();
+        return nextID++;
+    }
+
+    public synchronized int nextID() {
+        if (nextID != null)
+            return nextID;
+
+        nextID = this.stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getValue).orElse(0);
+        return nextID;
     }
 }
