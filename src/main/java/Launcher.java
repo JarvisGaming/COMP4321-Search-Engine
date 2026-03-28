@@ -23,7 +23,7 @@ public class Launcher {
         Connection conn = DriverManager.getConnection("jdbc:sqlite:globalInvertedIndex.db");
         InvertedIndex index = new InvertedIndex(conn); //
 
-        StopStem stopStem = new StopStem("/Users/yiuwah/Library/Mobile Documents/com~apple~CloudDocs/HKUST/2526S/COMP 4321/Project/COMP4321-Search-Engine/src/main/java/IRUtilities/stopwords.txt"); //repalce by relative path later
+        StopStem stopStem = new StopStem("./src/main/java/IRUtilities/stopwords.txt");
         for (HTMLPage doc : res) {
             stopStem.processBody(doc.title(), doc.text(), index);
         }
