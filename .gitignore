@@ -5,6 +5,7 @@ target/
 .kotlin
 
 data.db
+globalInvertedIndex.db
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
