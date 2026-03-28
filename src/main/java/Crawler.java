@@ -19,7 +19,7 @@ import java.lang.System.Logger;
 public final class Crawler {
     private static final Logger logger = System.getLogger(Crawler.class.getName());
 
-    public static ArrayList<HTMLPage> parse(String startingLink, int numPagesToCrawl) throws IOException, SQLException {
+    public static ArrayList<HTMLPage> parse(String startingLink, int numPagesToCrawl) throws IOException {
         ArrayList<HTMLPage> pages = new ArrayList<>();
         Queue<String> linksToVisit = new LinkedList<>();
         linksToVisit.add(startingLink);
@@ -55,26 +55,6 @@ public final class Crawler {
         }
 
         return pages;
-    }
-
-    private static boolean docUpToDateInDB(String link, Connection.Response response) throws SQLException {
-        // Check if not in index
-        Optional<HTMLPage> res = DBInterface.getDocument(link);
-        if (res.isEmpty()) {
-            logger.log(Logger.Level.INFO, link + " is not in DB");
-            return false;
-        }
-
-        // Check if in index, but modification date is later than the one in db
-        LocalDateTime lastModifiedInDB = res.get().lastModified();
-        LocalDateTime lastModifiedOnWebsite = getLastModified(response);
-        if (lastModifiedOnWebsite.isAfter(lastModifiedInDB)) {
-            logger.log(Logger.Level.INFO, link + ": lastModifiedInDB (" + lastModifiedInDB + ") vs lastModifiedOnWebsite (" + lastModifiedOnWebsite + ")");
-            return false;
-        }
-
-        logger.log(Logger.Level.INFO, link + " is in DB, and is up to date");
-        return true;
     }
 
     private static Optional<HTMLPage> parseOnePage(String link, Connection.Response response) throws IOException {

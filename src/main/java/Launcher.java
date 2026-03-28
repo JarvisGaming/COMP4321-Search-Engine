@@ -9,7 +9,7 @@ public class Launcher {
     public static void main(String[] args) throws IOException, SQLException {
         ArrayList<HTMLPage> res = Crawler.parse(
                 "https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm",
-                5
+                30
         );
 
         for (HTMLPage doc : res) {
@@ -17,11 +17,14 @@ public class Launcher {
         }
 
         ArrayList<String> docUrls = res.stream().map(HTMLPage::url).collect(Collectors.toCollection(ArrayList::new));
-        System.out.println("Newly crawled docs (not in DB, or in DB but needs updating):");
+        DBInterface.removeSurplusDocuments(docUrls);
+
+        System.out.println("Crawled docs");
         System.out.println(DBInterface.getDocuments(docUrls));
 
+
         Connection conn = DriverManager.getConnection("jdbc:sqlite:globalInvertedIndex.db");
-        InvertedIndex index = new InvertedIndex(conn); //
+        InvertedIndex index = new InvertedIndex(conn);
 
         StopStem stopStem = new StopStem("./src/main/java/IRUtilities/stopwords.txt");
         for (HTMLPage doc : res) {

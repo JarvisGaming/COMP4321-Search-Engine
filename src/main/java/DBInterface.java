@@ -18,6 +18,7 @@ public final class DBInterface {
     public static final Connection connection;
     public static final QueryRunner run = new QueryRunner();
     private static final String databasePath = System.getProperty("user.dir") + "/data.db";
+    private static final System.Logger logger = System.getLogger(Crawler.class.getName());
 
     // Initialize the database, and the connection to the database.
     static {
@@ -63,8 +64,12 @@ public final class DBInterface {
     }
 
     public static void addDocument(HTMLPage page) throws SQLException {
-        if (getDocument(page.url()).isPresent()) {
-            run.update(connection,
+        Optional<HTMLPage> res = getDocument(page.url());
+        if (res.isPresent()) {
+            LocalDateTime lastModifiedInDB = res.get().lastModified();
+            LocalDateTime lastModifiedOnWebsite = page.lastModified();
+            if (lastModifiedOnWebsite.isAfter(lastModifiedInDB)) {
+                run.update(connection,
                     """
                                 UPDATE documents SET
                                     title = ?,
@@ -74,7 +79,12 @@ public final class DBInterface {
                                     childUrls = ?
                                 WHERE url = ?
                             """, page.title(), page.lastModified(), page.text(), page.pageSize(), String.join(", ", page.childUrls()), page.url()
-            );
+                );
+                logger.log(System.Logger.Level.INFO, page.url() + ": lastModifiedInDB (" + lastModifiedInDB + ") vs lastModifiedOnWebsite (" + lastModifiedOnWebsite + ")");
+            } else {
+                logger.log(System.Logger.Level.INFO, page.url() + " is in DB, and is up to date");
+            }
+
         } else {
             run.update(connection,
                     """
@@ -88,11 +98,12 @@ public final class DBInterface {
                                 ) VALUES (?, ?, ?, ?, ?, ?);
                             """, page.url(), page.title(), page.lastModified(), page.text(), page.pageSize(), String.join(", ", page.childUrls())
             );
+            logger.log(System.Logger.Level.INFO, page.url() + " is not in DB");
         }
     }
 
     public static Optional<HTMLPage> getDocument(String url) throws SQLException {
-        String sql = "SELECT * FROM documents where url = ?";
+        String sql = "SELECT * FROM documents WHERE url = ?";
         ArrayList<HTMLPage> res = run.query(connection, sql, documentHandler, url);
         if (res.isEmpty()) return Optional.empty();
         else return Optional.of(res.getFirst());
@@ -100,11 +111,20 @@ public final class DBInterface {
 
     public static ArrayList<HTMLPage> getDocuments(ArrayList<String> urls) throws SQLException {
         // rs.setArray is not implemented in SQLite JDBC
-        String sql = "SELECT * FROM documents where url IN (" + "?,".repeat(urls.size());
+        String sql = "SELECT * FROM documents WHERE url IN (" + "?,".repeat(urls.size());
         if (!urls.isEmpty()) sql = sql.substring(0, sql.length() - 1);  // Remove last comma
         sql += ")";
 
         return run.query(connection, sql, documentHandler, urls.toArray());
+    }
+
+    public static void removeSurplusDocuments(ArrayList<String> urlsToKeep) throws SQLException {
+        // rs.setArray is not implemented in SQLite JDBC
+        String sql = "DELETE FROM documents WHERE url NOT IN (" + "?,".repeat(urlsToKeep.size());
+        if (!urlsToKeep.isEmpty()) sql = sql.substring(0, sql.length() - 1);  // Remove last comma
+        sql += ")";
+
+        run.update(connection, sql, urlsToKeep.toArray());
     }
 
     /**
