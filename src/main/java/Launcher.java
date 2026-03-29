@@ -69,10 +69,10 @@ public class Launcher {
                         .forEach(e -> out.print(e.getKey() + " " + e.getValue() + "; "));
                 out.println();
 
-                // Child links
-                for (String child : doc.childUrls()) {
-                    out.println(child);
-                }
+                // Up to 10 child links
+                doc.childUrls().stream()
+                    .limit(10)
+                    .forEach(e -> out.println(e));
 
                 out.println("\n---\n");
             }
