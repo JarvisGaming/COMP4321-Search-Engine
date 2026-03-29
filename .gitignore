@@ -6,6 +6,7 @@ target/
 
 data.db
 globalInvertedIndex.db
+spider_Result.txt
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
