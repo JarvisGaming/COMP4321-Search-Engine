@@ -29,7 +29,18 @@ public class StopStem {
         return porter.stripAffixes(str);
     }
 
-    // 處理 body 並存到 inverted_index
+    public Map<String, Integer> processBody(String title, String text) {
+        Map<String, Integer> termFreq = new HashMap<>();
+        String[] tokens = text.split("\\s+");
+        for (String token : tokens) {
+            if (!isStopWord(token)) {
+                String stemmed = stem(token);
+                termFreq.put(stemmed, termFreq.getOrDefault(stemmed, 0) + 1);
+            }
+        }
+        return termFreq;
+    }
+/*
     public void processBody(String title, String text, InvertedIndex index) throws SQLException {
         Map<String, Integer> termFreq = new HashMap<>();
         String[] tokens = text.split("\\s+");
@@ -44,5 +55,16 @@ public class StopStem {
         }
     }
 
+    public void processBody(String title, String text) throws SQLException {//try to remove the third argument
+        Map<String, Integer> termFreq = new HashMap<>();
+        String[] tokens = text.split("\\s+");
+        for (String token : tokens) {
+            if (!isStopWord(token)) {
+                String stemmed = stem(token);
+                termFreq.put(stemmed, termFreq.getOrDefault(stemmed, 0) + 1);
+            }
+        }
+    }
+*/
 
 }

@@ -12,7 +12,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public final class DBInterface {
     public static final Connection connection;
@@ -58,6 +60,24 @@ public final class DBInterface {
                                 "pageSize"	INTEGER NOT NULL,
                                 "childUrls"	TEXT,
                                 PRIMARY KEY("id" AUTOINCREMENT)
+                            );
+                            CREATE TABLE IF NOT EXISTS words (
+                                wordId INTEGER PRIMARY KEY AUTOINCREMENT,
+                                word TEXT UNIQUE
+                            );
+                        
+                            CREATE TABLE IF NOT EXISTS forward_index (
+                                docId INTEGER,
+                                wordId INTEGER,
+                                frequency INTEGER,
+                                PRIMARY KEY(docId, wordId)
+                            );
+                        
+                            CREATE TABLE IF NOT EXISTS inverted_index (
+                                wordId INTEGER,
+                                docId INTEGER,
+                                frequency INTEGER,
+                                PRIMARY KEY(wordId, docId)
                             );
                         """
         );
@@ -153,6 +173,50 @@ public final class DBInterface {
                 term, docId, frequency
         );
     }
+    // word ↔ wordId mapping
+    public static int getOrInsertWord(String word) throws SQLException {
+        String sqlSelect = "SELECT wordId FROM words WHERE word = ?";
+        ResultSetHandler<ArrayList<Integer>> handler = rs -> {
+            ArrayList<Integer> result = new ArrayList<>();
+            while (rs.next()) result.add(rs.getInt("wordId"));
+            return result;
+        };
+        ArrayList<Integer> res = run.query(connection, sqlSelect, handler, word);
+        if (!res.isEmpty()) return res.getFirst();
+
+        run.update(connection, "INSERT INTO words (word) VALUES (?)", word);
+        ArrayList<Integer> newRes = run.query(connection, sqlSelect, handler, word);
+        return newRes.getFirst();
+    }
+
+    // forward index: 存 docId, wordId, frequency
+    public static void addForwardIndex(int docId, int wordId, int frequency) throws SQLException {
+        run.update(connection,
+                "INSERT INTO forward_index (docId, wordId, frequency) VALUES (?, ?, ?) " +
+                        "ON CONFLICT(docId, wordId) DO UPDATE SET frequency = excluded.frequency",
+                docId, wordId, frequency
+        );
+    }
+    // inverted index (postings list)
+    public static void addPosting(int wordId, int docId, int frequency) throws SQLException {
+        run.update(connection,
+                "INSERT INTO inverted_index (wordId, docId, frequency) VALUES (?, ?, ?) " +
+                        "ON CONFLICT(wordId, docId) DO UPDATE SET frequency = excluded.frequency",
+                wordId, docId, frequency
+        );
+    }
+    public static int getDocIdByUrl(String url) throws SQLException {
+        String sql = "SELECT id FROM documents WHERE url = ?";
+        ResultSetHandler<ArrayList<Integer>> handler = rs -> {
+            ArrayList<Integer> result = new ArrayList<>();
+            while (rs.next()) result.add(rs.getInt("id"));
+            return result;
+        };
+        ArrayList<Integer> res = run.query(connection, sql, handler, url);
+        if (res.isEmpty()) throw new SQLException("Document not found for URL: " + url);
+        return res.getFirst();
+    }
+
 
 }
 
