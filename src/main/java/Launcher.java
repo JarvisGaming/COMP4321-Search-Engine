@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.io.FileWriter;
@@ -26,7 +25,8 @@ public class Launcher {
         DBInterface.removeSurplusDocuments(docUrls);
 
         System.out.println("Crawled docs stored in data.db");
-// Step 3: Indexing (forward + inverted index)
+
+        // Step 3: Indexing (forward + inverted index)
         StopStem stopStem = new StopStem("./src/main/java/IRUtilities/stopwords.txt");
 
         for (HTMLPage doc : res) {
@@ -52,8 +52,6 @@ public class Launcher {
 
         try (PrintWriter out = new PrintWriter(new FileWriter("spider_result.txt"))) {
             for (HTMLPage doc : res) {
-                int docId = DBInterface.getDocIdByUrl(doc.url());
-
                 // Page title
                 out.println(doc.title());
                 // URL
