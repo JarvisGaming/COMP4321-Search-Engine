@@ -22,6 +22,16 @@ public class NLPUtil {
         return words;
     }
 
+    public static @NotNull List<String> extractWords(@NotNull String words) {
+        List<String> wordList = new ArrayList<>();
+        StringTokenizer tok = new StringTokenizer(words);
+
+        while (tok.hasMoreTokens())
+            wordList.add(tok.nextToken());
+
+        return wordList;
+    }
+
     public static boolean isAlphaNumeric(String word) {
         return word != null && word.matches("^[a-zA-Z0-9]+$");
     }

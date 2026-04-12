@@ -5,6 +5,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public record DocumentRecord(
@@ -12,6 +13,9 @@ public record DocumentRecord(
         URL url,
         LocalDateTime lastModificationTimestamp,
         Map<String, Long> wordFrequencyTable,
+        Map<String, Long> titleFrequencyTable,
+        Map<String, Set<Long>> wordLocations,
         int pageSize,
         List<URL> childURLs
-) implements Serializable {}
+) implements Serializable {
+}

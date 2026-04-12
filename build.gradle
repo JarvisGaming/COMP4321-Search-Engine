@@ -15,6 +15,7 @@ dependencies {
     compileOnly 'org.jetbrains:annotations:26.0.2'
     implementation 'commons-dbutils:commons-dbutils:1.8.1'
     implementation 'edu.stanford.nlp:stanford-corenlp:4.5.5'
+    implementation 'com.google.guava:guava:33.5.0-jre'
     implementation 'info.picocli:picocli:4.7.7'
     implementation 'org.jsoup:jsoup:1.22.1'
     implementation 'org.rocksdb:rocksdbjni:10.6.2'

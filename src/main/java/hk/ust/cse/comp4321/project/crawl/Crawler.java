@@ -1,9 +1,12 @@
 package hk.ust.cse.comp4321.project.crawl;
 
+import com.google.common.collect.Streams;
 import hk.ust.cse.comp4321.project.index.DocumentIndex;
+import hk.ust.cse.comp4321.project.index.InvertedIndex;
 import hk.ust.cse.comp4321.project.index.RecordIndex;
 import hk.ust.cse.comp4321.project.util.NLPUtil;
 import hk.ust.cse.comp4321.project.util.URIUtil;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("UrlHashCode")
 public class Crawler {
     private final DocumentIndex documentIndex;
+    private final InvertedIndex invertedIndex;
     private final RecordIndex recordIndex;
     private final List<DocumentRecord> records;
     private final Queue<PendingURL> urlQueue;
@@ -42,6 +46,7 @@ public class Crawler {
 
     public Crawler(URL rootURL, int maxPages, int maxDepth) throws RocksDBException {
         this.documentIndex = DocumentIndex.getInstance();
+        this.invertedIndex = InvertedIndex.getInstance();
         this.recordIndex = RecordIndex.getInstance();
         this.records = new ArrayList<>();
         this.maxPages = maxPages;
@@ -71,7 +76,14 @@ public class Crawler {
                 response = Jsoup.connect(current.url.toString()).maxBodySize(0).followRedirects(false).execute();
 
                 Document document = response.parse();
+                String title = document.title();
                 List<String> words = NLPUtil.extractWords(document)
+                        .stream()
+                        .filter(NLPUtil::isAlphaNumeric)
+                        .filter(NLPUtil::isNotStopword)
+                        .map(NLPUtil::stem)
+                        .toList();
+                List<String> titleWords = NLPUtil.extractWords(title)
                         .stream()
                         .filter(NLPUtil::isAlphaNumeric)
                         .filter(NLPUtil::isNotStopword)
@@ -80,13 +92,21 @@ public class Crawler {
                 Map<String, Long> frequencyTable = words
                         .stream()
                         .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+                Map<String, Long> titleFrequencyTable = titleWords
+                        .stream()
+                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+                Map<String, Set<Long>> wordPositions = Streams.mapWithIndex(words.stream(), Pair::of)
+                        .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
 
                 List<URL> childUrls = linksFromDocument(document);
                 DocumentRecord rec = new DocumentRecord(
-                        document.title(),
+                        title,
                         current.url,
                         lastModifiedTimeOfResponse(response),
                         frequencyTable,
+                        titleFrequencyTable,
+                        wordPositions,
                         pageSizeOfResponseOrDocument(response, document),
                         childUrls
                 );
@@ -110,8 +130,8 @@ public class Crawler {
             try {
                 Optional<Integer> key = documentIndex.get(record.url().toString());
                 if (key.isPresent()) {
-                    Optional<DocumentRecord> recordinDatabase = recordIndex.get(key.get());
-                    if (recordinDatabase.isPresent() && !recordinDatabase.get().lastModificationTimestamp().equals(record.lastModificationTimestamp())) {
+                    Optional<DocumentRecord> recordInDatabase = recordIndex.get(key.get());
+                    if (recordInDatabase.isPresent() && !recordInDatabase.get().lastModificationTimestamp().equals(record.lastModificationTimestamp())) {
                         recordsModified.getAndIncrement();
                     }
                 } else {
@@ -120,9 +140,12 @@ public class Crawler {
                     recordsAdded.getAndIncrement();
                 }
 
+                record.wordLocations().forEach((word, locations) -> {
+                });
+
                 recordIndex.put(key.get(), record);
             } catch (RocksDBException ignored) {
-                System.err.println("warning: failed to add url " + record.url() + " to databases");
+                System.err.println("warning: failed to add url " + record.url() + " to document and record indexes");
             }
         });
 
