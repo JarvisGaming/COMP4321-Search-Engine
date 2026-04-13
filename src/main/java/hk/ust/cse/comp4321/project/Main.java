@@ -6,6 +6,8 @@ import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.ParseResult;
 
+import java.util.Arrays;
+
 
 public class Main {
     static void main(String[] args) {
@@ -15,7 +17,7 @@ public class Main {
                 .setCommandName("phase1");
         ParseResult result = cmdLine.parseArgs(args);
         if (result.hasSubcommand())
-            handleSubcommand(result.subcommand());
+            handleSubcommand(result.subcommand(), args);
         else
             handleOptions(options, cmdLine);
     }
@@ -25,8 +27,10 @@ public class Main {
             cmdLine.usage(System.out);
     }
 
-    private static void handleSubcommand(@NotNull ParseResult result) {
+    private static void handleSubcommand(@NotNull ParseResult result, String[] args) {
         CommandSpec spec = result.commandSpec();
-        spec.commandLine().execute();
+
+        String[] effectiveArgs = Arrays.copyOfRange(args, 1, args.length);
+        spec.commandLine().execute(effectiveArgs);
     }
 }
