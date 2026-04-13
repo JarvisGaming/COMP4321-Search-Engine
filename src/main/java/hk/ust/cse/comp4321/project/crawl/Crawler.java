@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -128,22 +129,26 @@ public class Crawler {
         AtomicInteger recordsModified = new AtomicInteger();
         this.records.forEach(record -> {
             try {
-                Optional<Integer> key = documentIndex.get(record.url().toString());
-                if (key.isPresent()) {
-                    Optional<DocumentRecord> recordInDatabase = recordIndex.get(key.get());
-                    if (recordInDatabase.isPresent() && !recordInDatabase.get().lastModificationTimestamp().equals(record.lastModificationTimestamp())) {
-                        recordsModified.getAndIncrement();
-                    }
+                Optional<Integer> optional = documentIndex.get(record.url().toString());
+                final Integer key = optional.orElseGet(documentIndex::incrementID);
+
+                Optional<DocumentRecord> recordInDatabase = recordIndex.get(key);
+                if (recordInDatabase.isPresent() && !recordInDatabase.get().lastModificationTimestamp().equals(record.lastModificationTimestamp())) {
+                    recordsModified.getAndIncrement();
                 } else {
-                    key = Optional.of(documentIndex.incrementID());
-                    documentIndex.put(record.url().toString(), key.get());
+                    documentIndex.put(record.url().toString(), key);
                     recordsAdded.getAndIncrement();
                 }
 
                 record.wordLocations().forEach((word, locations) -> {
+                    try {
+                        invertedIndex.put(word, locations.stream().map(loc -> Pair.of(key, loc)).collect(Collectors.toCollection(TreeSet::new)));
+                    } catch (RocksDBException exception) {
+                        System.err.println("warning: failed to update invered index for url: " + record.url());
+                    }
                 });
 
-                recordIndex.put(key.get(), record);
+                recordIndex.put(key, record);
             } catch (RocksDBException ignored) {
                 System.err.println("warning: failed to add url " + record.url() + " to document and record indexes");
             }

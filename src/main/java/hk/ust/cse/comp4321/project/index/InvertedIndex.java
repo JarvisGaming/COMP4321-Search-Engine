@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.TreeSet;
 
 
-public class InvertedIndex extends RocksDatabaseMap<String, TreeSet<Pair<Integer, Integer>>> {
+public class InvertedIndex extends RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> {
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static Optional<InvertedIndex> INSTANCE = Optional.empty();
 
