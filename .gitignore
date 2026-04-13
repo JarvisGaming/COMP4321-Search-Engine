@@ -11,11 +11,7 @@ globalInvertedIndex.db
 spider_Result.txt
 
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-.idea/workspace.xml
+.idea
 *.iws
 *.iml
 *.ipr
