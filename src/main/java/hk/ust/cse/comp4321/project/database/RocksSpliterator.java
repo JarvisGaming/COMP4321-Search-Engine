@@ -37,6 +37,7 @@ public class RocksSpliterator<K extends Serializable, V extends Serializable> im
         }
 
         action.accept(Pair.of(key, value));
+        iterator.next();
         return true;
     }
 
