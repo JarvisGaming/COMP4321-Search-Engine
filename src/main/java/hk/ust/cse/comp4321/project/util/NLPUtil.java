@@ -14,10 +14,13 @@ public class NLPUtil {
 
     public static @NotNull List<String> extractWords(@NotNull Document document) {
         List<String> words = new ArrayList<>();
-        StringTokenizer tokenizer = new StringTokenizer(document.body().text());
+
+        // Keep apstrophes for phrase search
+        StringTokenizer tokenizer = new StringTokenizer(document.body().text(), " \t\n\r\f\"\\()[]:-,.");
 
         while (tokenizer.hasMoreTokens())
             words.add(tokenizer.nextToken());
+        System.out.println(words);
 
         return words;
     }
@@ -42,5 +45,10 @@ public class NLPUtil {
 
     public static String stem(@NotNull String word) {
         return stopwordStem.stem(word);
+    }
+
+    public static String removePunctuation(@NotNull String word){
+
+        return word;
     }
 }
