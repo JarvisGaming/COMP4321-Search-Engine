@@ -1,6 +1,8 @@
 package hk.ust.cse.comp4321.project;
 
 import hk.ust.cse.comp4321.project.crawl.CrawlCommand;
+import hk.ust.cse.comp4321.project.database.DBDeleteCommand;
+import hk.ust.cse.comp4321.project.database.DBViewCommand;
 import org.jetbrains.annotations.NotNull;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
@@ -14,7 +16,9 @@ public class Main {
         MainCommand options = new MainCommand();
         CommandLine cmdLine = new CommandLine(options)
                 .addSubcommand(new CrawlCommand())
-                .setCommandName("phase1");
+                .addSubcommand(new DBViewCommand())
+                .addSubcommand(new DBDeleteCommand())
+                .setCommandName("phase2");
         ParseResult result = cmdLine.parseArgs(args);
         if (result.hasSubcommand())
             handleSubcommand(result.subcommand(), args);
