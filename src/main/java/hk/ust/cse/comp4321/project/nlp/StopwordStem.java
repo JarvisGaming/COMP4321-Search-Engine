@@ -17,15 +17,13 @@ public class StopwordStem {
 
     public StopwordStem() {
         morphology = new Morphology();
-
         HashSet<String> temp;
-        try (InputStream stream = StopwordStem.class.getResourceAsStream("stopwords.txt");
-             InputStreamReader isReader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-             BufferedReader bReader = new BufferedReader(isReader)) {
-            temp = bReader.lines().collect(Collectors.toCollection(HashSet::new));
-        } catch (Exception ignored) {
-            temp = new HashSet<>();
-        }
+
+        InputStream stream = StopwordStem.class.getResourceAsStream("/stopwords.txt");
+        InputStreamReader isReader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+        BufferedReader bReader = new BufferedReader(isReader);
+        temp = bReader.lines().collect(Collectors.toCollection(HashSet::new));
+
         stopwords = temp;
     }
 
