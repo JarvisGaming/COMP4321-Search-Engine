@@ -73,7 +73,7 @@ public class CrawlCommand implements Runnable {
         for (String term : titleTerms){
             long df = 0;
             for (DocumentRecord record : records){
-                if (record.titleTermFrequencies().keySet().contains(term))
+                if (record.titleTermFrequencies().containsKey(term))
                     df++;
             }
             titleDFs.put(term, df);
@@ -82,24 +82,39 @@ public class CrawlCommand implements Runnable {
         for (String term : bodyTerms){
             long df = 0;
             for (DocumentRecord record : records){
-                if (record.bodyTermFrequencies().keySet().contains(term))
+                if (record.bodyTermFrequencies().containsKey(term))
                     df++;
             }
             bodyDFs.put(term, df);
         }
 
-        System.out.println(titleTerms);
         System.out.println(titleDFs);
-        System.out.println(bodyTerms);
         System.out.println(bodyDFs);
 
         // Calculate term weights (for both title and body terms)
-//        for (DocumentRecord record : records){
-//            for (String titleTerm : record.titleTermFrequencies().keySet()){
-//
-//            }
-//        }
+        for (DocumentRecord record : records){
+            long maxTf = Collections.max(record.titleTermFrequencies().values());
+            for (String titleTerm : record.titleTermFrequencies().keySet()){
+                long tf = record.titleTermFrequencies().get(titleTerm);
+                long df = titleDFs.get(titleTerm);
+                double idfBeforeBinLog = (double) numRecords / df;
+                double idf = Math.log(idfBeforeBinLog) / Math.log(2);
+                double termWeight = tf * idf / maxTf;
 
+                record.titleTermWeights().put(titleTerm, termWeight);
+            }
+
+            maxTf = Collections.max(record.bodyTermFrequencies().values());
+            for (String bodyTerm : record.bodyTermFrequencies().keySet()){
+                long tf = record.bodyTermFrequencies().get(bodyTerm);
+                long df = bodyDFs.get(bodyTerm);
+                double idfBeforeBinLog = (double) numRecords / df;
+                double idf = Math.log(idfBeforeBinLog) / Math.log(2);
+                double termWeight = tf * idf / maxTf;
+
+                record.bodyTermWeights().put(bodyTerm, termWeight);
+            }
+        }
 
         crawler.updateIndexes();
     }
