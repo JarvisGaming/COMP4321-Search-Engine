@@ -13,19 +13,28 @@ public class NLPUtil {
     private static final StopwordStem stopwordStem = new StopwordStem();
     private static final String TOKENIZER_DELIMITERS = " \t\n\r\f\"'\\()[]<>:,.?!@#$%^&*-_=+|/";
 
-    public static @NotNull List<String> extractWords(@NotNull Document document) {
-        List<String> words = new ArrayList<>();
+    // Prepare document body/title or query for downstream tasks
+    public static List<String> standardizeWords(List<String> words) {
+        return words.stream()
+            .map(String::toLowerCase)
+            .filter(NLPUtil::isAlphaNumeric)
+            .filter(NLPUtil::isNotStopword)
+            .map(NLPUtil::stem)
+            .toList();
+    }
+
+    public static List<String> extractWords(@NotNull Document document) {
+        List<String> wordList = new ArrayList<>();
 
         StringTokenizer tokenizer = new StringTokenizer(document.body().text(), TOKENIZER_DELIMITERS);
 
         while (tokenizer.hasMoreTokens())
-            words.add(tokenizer.nextToken());
-        System.out.println(words);
+            wordList.add(tokenizer.nextToken());
 
-        return words;
+        return wordList;
     }
 
-    public static @NotNull List<String> extractWords(@NotNull String words) {
+    public static List<String> extractWords(String words) {
         List<String> wordList = new ArrayList<>();
         StringTokenizer tok = new StringTokenizer(words, TOKENIZER_DELIMITERS);
 

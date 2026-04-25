@@ -78,20 +78,8 @@ public class Crawler {
 
                 Document document = response.parse();
                 String title = document.title();
-                List<String> words = NLPUtil.extractWords(document)
-                        .stream()
-                        .map(String::toLowerCase)
-                        .filter(NLPUtil::isAlphaNumeric)
-                        .filter(NLPUtil::isNotStopword)
-                        .map(NLPUtil::stem)
-                        .toList();
-                List<String> titleWords = NLPUtil.extractWords(title)
-                        .stream()
-                        .map(String::toLowerCase)
-                        .filter(NLPUtil::isAlphaNumeric)
-                        .filter(NLPUtil::isNotStopword)
-                        .map(NLPUtil::stem)
-                        .toList();
+                List<String> words = NLPUtil.standardizeWords(NLPUtil.extractWords(document));
+                List<String> titleWords = NLPUtil.standardizeWords(NLPUtil.extractWords(title));
                 Map<String, Long> frequencyTable = words
                         .stream()
                         .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
