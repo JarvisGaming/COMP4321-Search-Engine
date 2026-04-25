@@ -71,7 +71,7 @@ public class Crawler {
                 String title = document.title();
                 List<String> words = NLPUtil.standardizeWords(NLPUtil.extractWords(document));
                 List<String> titleWords = NLPUtil.standardizeWords(NLPUtil.extractWords(title));
-                Map<String, Long> frequencyTable = words
+                Map<String, Long> bodyFrequencyTable = words
                         .stream()
                         .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
                 Map<String, Long> titleFrequencyTable = titleWords
@@ -86,8 +86,10 @@ public class Crawler {
                         title,
                         current.url,
                         lastModifiedTimeOfResponse(response),
-                        frequencyTable,
                         titleFrequencyTable,
+                        bodyFrequencyTable,
+                        Collections.emptyMap(),
+                        Collections.emptyMap(),
                         wordPositions,
                         pageSizeOfResponseOrDocument(response, document),
                         new HashSet<>(),

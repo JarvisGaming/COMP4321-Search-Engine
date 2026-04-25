@@ -5,10 +5,7 @@ import picocli.CommandLine.*;
 
 import java.net.URI;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -43,7 +40,8 @@ public class CrawlCommand implements Runnable {
 
         crawler.crawl();
         List<DocumentRecord> records = crawler.documentRecords();
-        System.out.println("info: crawler has retrieved " + records.size() + " documents after crawling");
+        int numRecords = records.size();
+        System.out.println("info: crawler has retrieved " + numRecords + " documents after crawling");
 
         // Get parent links
         Map<URL, DocumentRecord> recordMap = records.stream().collect(
@@ -58,7 +56,50 @@ public class CrawlCommand implements Runnable {
             }
         }
 
-        // Calculate term weights
+        // Get document frequencies of all terms across all docs
+        HashSet<String> titleTerms = records.stream()
+            .map(record -> record.titleTermFrequencies().keySet())
+            .flatMap(Set::stream)
+            .collect(Collectors.toCollection(HashSet::new));
+
+        HashSet<String> bodyTerms = records.stream()
+            .map(record -> record.bodyTermFrequencies().keySet())
+            .flatMap(Set::stream)
+            .collect(Collectors.toCollection(HashSet::new));
+
+        Map<String, Long> titleDFs = new HashMap<>();
+        Map<String, Long> bodyDFs = new HashMap<>();
+
+        for (String term : titleTerms){
+            long df = 0;
+            for (DocumentRecord record : records){
+                if (record.titleTermFrequencies().keySet().contains(term))
+                    df++;
+            }
+            titleDFs.put(term, df);
+        }
+
+        for (String term : bodyTerms){
+            long df = 0;
+            for (DocumentRecord record : records){
+                if (record.bodyTermFrequencies().keySet().contains(term))
+                    df++;
+            }
+            bodyDFs.put(term, df);
+        }
+
+        System.out.println(titleTerms);
+        System.out.println(titleDFs);
+        System.out.println(bodyTerms);
+        System.out.println(bodyDFs);
+
+        // Calculate term weights (for both title and body terms)
+//        for (DocumentRecord record : records){
+//            for (String titleTerm : record.titleTermFrequencies().keySet()){
+//
+//            }
+//        }
+
 
         crawler.updateIndexes();
     }
