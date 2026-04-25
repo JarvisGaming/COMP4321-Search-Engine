@@ -11,12 +11,12 @@ import java.util.StringTokenizer;
 
 public class NLPUtil {
     private static final StopwordStem stopwordStem = new StopwordStem();
+    private static final String TOKENIZER_DELIMITERS = " \t\n\r\f\"'\\()[]<>:,.?!@#$%^&*-_=+|/";
 
     public static @NotNull List<String> extractWords(@NotNull Document document) {
         List<String> words = new ArrayList<>();
 
-        // Keep apstrophes for phrase search
-        StringTokenizer tokenizer = new StringTokenizer(document.body().text(), " \t\n\r\f\"\\()[]:-,.");
+        StringTokenizer tokenizer = new StringTokenizer(document.body().text(), TOKENIZER_DELIMITERS);
 
         while (tokenizer.hasMoreTokens())
             words.add(tokenizer.nextToken());
@@ -27,7 +27,7 @@ public class NLPUtil {
 
     public static @NotNull List<String> extractWords(@NotNull String words) {
         List<String> wordList = new ArrayList<>();
-        StringTokenizer tok = new StringTokenizer(words);
+        StringTokenizer tok = new StringTokenizer(words, TOKENIZER_DELIMITERS);
 
         while (tok.hasMoreTokens())
             wordList.add(tok.nextToken());
@@ -40,15 +40,10 @@ public class NLPUtil {
     }
 
     public static boolean isNotStopword(@NotNull String word) {
-        return !stopwordStem.isStopword(word.toLowerCase());
+        return !stopwordStem.isStopword(word);
     }
 
     public static String stem(@NotNull String word) {
         return stopwordStem.stem(word);
-    }
-
-    public static String removePunctuation(@NotNull String word){
-
-        return word;
     }
 }
