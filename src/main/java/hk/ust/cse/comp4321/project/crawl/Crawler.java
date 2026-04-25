@@ -142,7 +142,13 @@ public class Crawler {
 
                 record.wordLocations().forEach((word, locations) -> {
                     try {
-                        invertedIndex.put(word, locations.stream().map(loc -> Pair.of(key, loc)).collect(Collectors.toCollection(TreeSet::new)));
+                        TreeSet<Pair<Integer, Long>> existingWordLocations = invertedIndex.get(word).orElseGet(TreeSet::new);
+                        TreeSet<Pair<Integer, Long>> newWordLocations = locations.stream().map(
+                            loc -> Pair.of(key, loc)).collect(Collectors.toCollection(TreeSet::new)
+                        );
+                        existingWordLocations.addAll(newWordLocations);
+
+                        invertedIndex.put(word, existingWordLocations);
                     } catch (RocksDBException exception) {
                         System.err.println("warning: failed to update invered index for url: " + record.url());
                     }
