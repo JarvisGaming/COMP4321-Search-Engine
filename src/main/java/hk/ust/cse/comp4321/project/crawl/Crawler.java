@@ -17,16 +17,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -99,6 +90,7 @@ public class Crawler {
                         titleFrequencyTable,
                         wordPositions,
                         pageSizeOfResponseOrDocument(response, document),
+                        new HashSet<>(),
                         childUrls
                 );
                 visited.add(current.url);

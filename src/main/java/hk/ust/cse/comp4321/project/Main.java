@@ -3,6 +3,7 @@ package hk.ust.cse.comp4321.project;
 import hk.ust.cse.comp4321.project.crawl.CrawlCommand;
 import hk.ust.cse.comp4321.project.database.DBDeleteCommand;
 import hk.ust.cse.comp4321.project.database.DBViewCommand;
+import hk.ust.cse.comp4321.project.retrieval.SearchCommand;
 import org.jetbrains.annotations.NotNull;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
@@ -18,6 +19,7 @@ public class Main {
                 .addSubcommand(new CrawlCommand())
                 .addSubcommand(new DBViewCommand())
                 .addSubcommand(new DBDeleteCommand())
+                .addSubcommand(new SearchCommand())
                 .setCommandName("phase2");
         ParseResult result = cmdLine.parseArgs(args);
         if (result.hasSubcommand())

@@ -5,7 +5,11 @@ import picocli.CommandLine.*;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Command(name = "crawl", description = "Crawl pages from a starting link.")
@@ -40,6 +44,21 @@ public class CrawlCommand implements Runnable {
         crawler.crawl();
         List<DocumentRecord> records = crawler.documentRecords();
         System.out.println("info: crawler has retrieved " + records.size() + " documents after crawling");
+
+        // Get parent links
+        Map<URL, DocumentRecord> recordMap = records.stream().collect(
+            Collectors.toMap(item -> item.url(), item -> item)
+        );
+
+        for (DocumentRecord parentRecord : records){
+            for (URL childURL : parentRecord.childURLs()){
+                DocumentRecord childRecord = recordMap.get(childURL);
+                if (childRecord == null) continue;
+                childRecord.parentURLs().add(parentRecord.url());
+            }
+        }
+
+        // Calculate term weights
 
         crawler.updateIndexes();
     }

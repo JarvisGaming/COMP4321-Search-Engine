@@ -3,9 +3,7 @@ package hk.ust.cse.comp4321.project.crawl;
 import java.io.Serializable;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public record DocumentRecord(
@@ -16,6 +14,7 @@ public record DocumentRecord(
         Map<String, Long> titleFrequencyTable,
         Map<String, Set<Long>> wordLocations,
         int pageSize,
+        HashSet<URL> parentURLs,
         List<URL> childURLs
 ) implements Serializable {
 }
