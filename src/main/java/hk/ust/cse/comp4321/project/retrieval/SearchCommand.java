@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 @Command(name = "search", description = "Performs a search query.")
 public class SearchCommand implements Runnable {
-    Scanner scanner = new Scanner(System.in);
+    final Scanner scanner = new Scanner(System.in);
 
     @Override
     public void run() {
@@ -30,9 +30,6 @@ public class SearchCommand implements Runnable {
         while (matcher.find()) {
             textInQuotes.add(matcher.group(1)); // group(1) is the content without quotes
         }
-
-        // word positions in DocumentRecord are already excluding stopwords
-        // ie the text of the webpage are after NLP steps
 
         // Parse all words in quotes
         List<List<String>> phrases = textInQuotes.stream()

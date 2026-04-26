@@ -48,10 +48,6 @@ public class NLPUtil {
         return word != null && word.matches("^[a-zA-Z0-9]+$");
     }
 
-    public static boolean isStopword(@NotNull String word) {
-        return stopwordStem.isStopword(word);
-    }
-
     public static boolean isNotStopword(@NotNull String word) {
         return !stopwordStem.isStopword(word);
     }
