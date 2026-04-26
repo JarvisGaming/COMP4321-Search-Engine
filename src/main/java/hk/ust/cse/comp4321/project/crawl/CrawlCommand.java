@@ -18,9 +18,6 @@ public class CrawlCommand implements Runnable {
     @Option(names = {"--pages"}, description = "The maximum number of unique pages to crawl.", defaultValue = "30")
     private int maxPages;
 
-    @Option(names = {"-d", "--depth"}, description = "The maximum depth of the crawl.", defaultValue = "5")
-    private int maxDepth;
-
     @Override
     public void run() {
         URL url;
@@ -33,7 +30,7 @@ public class CrawlCommand implements Runnable {
 
         Crawler crawler;
         try {
-            crawler = new Crawler(url, maxPages, maxDepth);
+            crawler = new Crawler(url, maxPages);
         } catch (RocksDBException ignored) {
             System.err.println("error: failed to initialize crawler document record index");
             return;

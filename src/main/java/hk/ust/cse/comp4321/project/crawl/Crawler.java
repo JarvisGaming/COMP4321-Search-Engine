@@ -32,17 +32,15 @@ public class Crawler {
     private final Queue<PendingURL> urlQueue;
     private final Set<URL> visited;
     private final int maxPages;
-    private final int maxDepth;
 
     private int retrieved = 0;
 
-    public Crawler(URL rootURL, int maxPages, int maxDepth) throws RocksDBException {
+    public Crawler(URL rootURL, int maxPages) throws RocksDBException {
         this.documentIndex = DocumentIndex.getInstance();
         this.invertedIndex = InvertedIndex.getInstance();
         this.recordIndex = RecordIndex.getInstance();
         this.records = new ArrayList<>();
         this.maxPages = maxPages;
-        this.maxDepth = maxDepth;
         this.visited = new HashSet<>();
 
         this.urlQueue = new ArrayDeque<>();
@@ -52,8 +50,6 @@ public class Crawler {
     public void crawl() {
         while (!urlQueue.isEmpty()) {
             PendingURL current = urlQueue.poll();
-            if (current.depth > maxDepth)
-                break;
             if (visited.contains(current.url))
                 continue;
 
