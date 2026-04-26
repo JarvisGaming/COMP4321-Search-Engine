@@ -20,6 +20,7 @@ public class StopwordStem {
         HashSet<String> temp;
 
         InputStream stream = StopwordStem.class.getResourceAsStream("/stopwords.txt");
+        assert stream != null;
         InputStreamReader isReader = new InputStreamReader(stream, StandardCharsets.UTF_8);
         BufferedReader bReader = new BufferedReader(isReader);
         temp = bReader.lines().collect(Collectors.toCollection(HashSet::new));
