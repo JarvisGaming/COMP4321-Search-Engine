@@ -62,50 +62,70 @@ public class Crawler {
             else
                 retrieved++;
 
-            Connection.Response response;
+            crawlOnePage(current);
+        }
 
-            try {
-                response = Jsoup.connect(current.url.toString()).maxBodySize(0).followRedirects(false).execute();
+        populateParentURLs();
+    }
 
-                Document document = response.parse();
-                String title = document.title();
-                List<String> words = NLPUtil.standardizeWords(NLPUtil.extractWords(document));
-                List<String> titleWords = NLPUtil.standardizeWords(NLPUtil.extractWords(title));
-                Map<String, Long> bodyFrequencyTable = words
-                        .stream()
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-                Map<String, Long> titleFrequencyTable = titleWords
-                        .stream()
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+    private void crawlOnePage(PendingURL current) {
+        Connection.Response response;
 
-                Map<String, Set<Long>> wordPositions = Streams.mapWithIndex(words.stream(), Pair::of)
-                        .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
+        try {
+            response = Jsoup.connect(current.url.toString()).maxBodySize(0).followRedirects(false).execute();
 
-                List<URL> childUrls = linksFromDocument(document);
-                DocumentRecord rec = new DocumentRecord(
-                        title,
-                        current.url,
-                        lastModifiedTimeOfResponse(response),
-                        titleFrequencyTable,
-                        bodyFrequencyTable,
-                        new HashMap<>(),
-                        new HashMap<>(),
-                        wordPositions,
-                        pageSizeOfResponseOrDocument(response, document),
-                        new HashSet<>(),
-                        childUrls
-                );
-                visited.add(current.url);
-                records.add(rec);
+            Document document = response.parse();
+            String title = document.title();
+            List<String> words = NLPUtil.standardizeWords(NLPUtil.extractWords(document));
+            List<String> titleWords = NLPUtil.standardizeWords(NLPUtil.extractWords(title));
+            Map<String, Long> bodyFrequencyTable = words
+                    .stream()
+                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+            Map<String, Long> titleFrequencyTable = titleWords
+                    .stream()
+                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-                urlQueue.addAll(childUrls.stream().map(it -> new PendingURL(it, current.depth + 1)).toList());
-            } catch (IOException ignored) {
-            }
+            Map<String, Set<Long>> wordPositions = Streams.mapWithIndex(words.stream(), Pair::of)
+                    .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
+
+            List<URL> childUrls = linksFromDocument(document);
+            DocumentRecord rec = new DocumentRecord(
+                    title,
+                    current.url,
+                    lastModifiedTimeOfResponse(response),
+                    titleFrequencyTable,
+                    bodyFrequencyTable,
+                    new HashMap<>(),
+                    new HashMap<>(),
+                    wordPositions,
+                    pageSizeOfResponseOrDocument(response, document),
+                    new HashSet<>(),
+                    childUrls
+            );
+            visited.add(current.url);
+            records.add(rec);
+
+            urlQueue.addAll(childUrls.stream().map(it -> new PendingURL(it, current.depth + 1)).toList());
+        } catch (IOException ignored) {
         }
     }
 
     public List<DocumentRecord> documentRecords() {
         return this.records;
+    }
+
+    private void populateParentURLs(){
+        Map<URL, DocumentRecord> urlToRecordsMap = this.records.stream().collect(
+            Collectors.toMap(DocumentRecord::url, item -> item)
+        );
+
+        for (DocumentRecord parentRecord : this.records){
+            for (URL childURL : parentRecord.childURLs()){
+                DocumentRecord childRecord = urlToRecordsMap.get(childURL);
+                if (childRecord == null) continue;
+                childRecord.parentURLs().add(parentRecord.url());
+            }
+        }
     }
 
     public void updateIndexes() {

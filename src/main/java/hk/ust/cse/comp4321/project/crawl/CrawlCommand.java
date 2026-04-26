@@ -40,22 +40,10 @@ public class CrawlCommand implements Runnable {
         }
 
         crawler.crawl();
+
         List<DocumentRecord> records = crawler.documentRecords();
         int numRecords = records.size();
         System.out.println("info: crawler has retrieved " + numRecords + " documents after crawling");
-
-        // Get parent links
-        Map<URL, DocumentRecord> urlToRecordsMap = records.stream().collect(
-            Collectors.toMap(DocumentRecord::url, item -> item)
-        );
-
-        for (DocumentRecord parentRecord : records){
-            for (URL childURL : parentRecord.childURLs()){
-                DocumentRecord childRecord = urlToRecordsMap.get(childURL);
-                if (childRecord == null) continue;
-                childRecord.parentURLs().add(parentRecord.url());
-            }
-        }
 
         // Get document frequencies of all terms across all docs
         ArrayList<Set<String>> titleTerms = records.stream()
