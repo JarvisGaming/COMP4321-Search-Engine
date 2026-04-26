@@ -1,5 +1,6 @@
 package hk.ust.cse.comp4321.project.crawl;
 
+import hk.ust.cse.comp4321.project.index.Indexer;
 import org.rocksdb.RocksDBException;
 import picocli.CommandLine.*;
 
@@ -44,77 +45,32 @@ public class CrawlCommand implements Runnable {
         System.out.println("info: crawler has retrieved " + numRecords + " documents after crawling");
 
         // Get parent links
-        Map<URL, DocumentRecord> recordMap = records.stream().collect(
-            Collectors.toMap(item -> item.url(), item -> item)
+        Map<URL, DocumentRecord> urlToRecordsMap = records.stream().collect(
+            Collectors.toMap(DocumentRecord::url, item -> item)
         );
 
         for (DocumentRecord parentRecord : records){
             for (URL childURL : parentRecord.childURLs()){
-                DocumentRecord childRecord = recordMap.get(childURL);
+                DocumentRecord childRecord = urlToRecordsMap.get(childURL);
                 if (childRecord == null) continue;
                 childRecord.parentURLs().add(parentRecord.url());
             }
         }
 
         // Get document frequencies of all terms across all docs
-        HashSet<String> titleTerms = records.stream()
+        ArrayList<Set<String>> titleTerms = records.stream()
             .map(record -> record.titleTermFrequencies().keySet())
-            .flatMap(Set::stream)
-            .collect(Collectors.toCollection(HashSet::new));
+            .collect(Collectors.toCollection(ArrayList::new));
 
-        HashSet<String> bodyTerms = records.stream()
+        ArrayList<Set<String>> bodyTerms = records.stream()
             .map(record -> record.bodyTermFrequencies().keySet())
-            .flatMap(Set::stream)
-            .collect(Collectors.toCollection(HashSet::new));
+            .collect(Collectors.toCollection(ArrayList::new));
 
-        Map<String, Long> titleDFs = new HashMap<>();
-        Map<String, Long> bodyDFs = new HashMap<>();
-
-        for (String term : titleTerms){
-            long df = 0;
-            for (DocumentRecord record : records){
-                if (record.titleTermFrequencies().containsKey(term))
-                    df++;
-            }
-            titleDFs.put(term, df);
-        }
-
-        for (String term : bodyTerms){
-            long df = 0;
-            for (DocumentRecord record : records){
-                if (record.bodyTermFrequencies().containsKey(term))
-                    df++;
-            }
-            bodyDFs.put(term, df);
-        }
-
-        System.out.println(titleDFs);
-        System.out.println(bodyDFs);
+        Map<String, Long> titleDFs = Indexer.getDocumentFrequencies(titleTerms);
+        Map<String, Long> bodyDFs = Indexer.getDocumentFrequencies(bodyTerms);
 
         // Calculate term weights (for both title and body terms)
-        for (DocumentRecord record : records){
-            long maxTf = Collections.max(record.titleTermFrequencies().values());
-            for (String titleTerm : record.titleTermFrequencies().keySet()){
-                long tf = record.titleTermFrequencies().get(titleTerm);
-                long df = titleDFs.get(titleTerm);
-                double idfBeforeBinLog = (double) numRecords / df;
-                double idf = Math.log(idfBeforeBinLog) / Math.log(2);
-                double termWeight = tf * idf / maxTf;
-
-                record.titleTermWeights().put(titleTerm, termWeight);
-            }
-
-            maxTf = Collections.max(record.bodyTermFrequencies().values());
-            for (String bodyTerm : record.bodyTermFrequencies().keySet()){
-                long tf = record.bodyTermFrequencies().get(bodyTerm);
-                long df = bodyDFs.get(bodyTerm);
-                double idfBeforeBinLog = (double) numRecords / df;
-                double idf = Math.log(idfBeforeBinLog) / Math.log(2);
-                double termWeight = tf * idf / maxTf;
-
-                record.bodyTermWeights().put(bodyTerm, termWeight);
-            }
-        }
+        Indexer.populateTermWeights(records, titleDFs, bodyDFs);
 
         crawler.updateIndexes();
     }
