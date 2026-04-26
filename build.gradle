@@ -34,3 +34,8 @@ application {
 test {
     useJUnitPlatform()
 }
+
+// Make scanner work for testing
+run {
+    standardInput = System.in
+}
