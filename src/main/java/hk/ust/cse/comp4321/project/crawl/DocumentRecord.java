@@ -14,7 +14,8 @@ public record DocumentRecord(
         Map<String, Long> bodyTermFrequencies,
         Map<String, Double> titleTermWeights,
         Map<String, Double> bodyTermWeights,
-        Map<String, Set<Long>> wordLocations,
+        Map<String, Set<Long>> titleWordLocations,
+        Map<String, Set<Long>> bodyWordLocations,
         int pageSize,
         HashSet<URL> parentURLs,
         List<URL> childURLs

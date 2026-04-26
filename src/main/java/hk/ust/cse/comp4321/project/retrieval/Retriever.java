@@ -51,20 +51,14 @@ public class Retriever {
 
     public static boolean webpageContainsAllPhrases(DocumentRecord record, List<List<String>> phrases){
         for (List<String> phrase : phrases){
-            if (!webpageBodyContainsPhrase(record.wordLocations(), phrase)) return false;
+            if (!webpageSectionContainsPhrase(record.titleWordLocations(), phrase) &&
+                !webpageSectionContainsPhrase(record.bodyWordLocations(), phrase)) return false;
         }
         return true;
     }
 
-    private static boolean webpageBodyContainsPhrase(Map<String, Set<Long>> wordLocations, List<String> phrase){
-        // If not all the stems in the phrase are in the record
-        // And we need to do it twice for both title and body
-
-        // We need title AND body word locations separately
-
-        // So check body first
-        List<Set<Long>> phraseWordLocationsInDoc = new ArrayList<>();  // [(45, 123), (46), (47, 1239)]
-
+    private static boolean webpageSectionContainsPhrase(Map<String, Set<Long>> wordLocations, List<String> phrase){
+        List<Set<Long>> phraseWordLocationsInDoc = new ArrayList<>();  // e.g. [(45, 123), (46), (47, 1239)]
         for (String word : phrase){
             // Doc does not contain all the words in the phrase
             if (!wordLocations.containsKey(word))
@@ -74,6 +68,10 @@ public class Retriever {
         }
 
         // Use DP
+        // Problem statement: Given a list of location sets, determine whether there exists an incrementing sequence across the sets.
+        // [(45, 123), (46), (47, 1239)] -> Exists: [45, 46, 47]
+        // [(1, 2), (3, 4), (6)] -> Does not exist
+
         // Start with all values from the first set as potential sequence starts
         Set<Long> reachable = new HashSet<>(phraseWordLocationsInDoc.getFirst());
 

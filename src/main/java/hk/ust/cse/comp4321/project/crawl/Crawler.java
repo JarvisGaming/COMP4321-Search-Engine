@@ -72,16 +72,21 @@ public class Crawler {
 
             Document document = response.parse();
             String title = document.title();
-            List<String> words = NLPUtil.standardizeWords(NLPUtil.extractWords(document));
+
             List<String> titleWords = NLPUtil.standardizeWords(NLPUtil.extractWords(title));
+            List<String> words = NLPUtil.standardizeWords(NLPUtil.extractWords(document));
+
+            Map<String, Long> titleFrequencyTable = titleWords
+                .stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
             Map<String, Long> bodyFrequencyTable = words
                     .stream()
                     .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-            Map<String, Long> titleFrequencyTable = titleWords
-                    .stream()
-                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-            Map<String, Set<Long>> wordPositions = Streams.mapWithIndex(words.stream(), Pair::of)
+
+            Map<String, Set<Long>> titleWordLocations = Streams.mapWithIndex(titleWords.stream(), Pair::of)
+                .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
+            Map<String, Set<Long>> bodyWordLocations = Streams.mapWithIndex(words.stream(), Pair::of)
                     .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
 
             List<URL> childUrls = linksFromDocument(document);
@@ -93,7 +98,8 @@ public class Crawler {
                     bodyFrequencyTable,
                     new HashMap<>(),
                     new HashMap<>(),
-                    wordPositions,
+                    titleWordLocations,
+                    bodyWordLocations,
                     pageSizeOfResponseOrDocument(response, document),
                     new HashSet<>(),
                     childUrls
@@ -140,7 +146,7 @@ public class Crawler {
                     recordsAdded.getAndIncrement();
                 }
 
-                record.wordLocations().forEach((word, locations) -> {
+                record.bodyWordLocations().forEach((word, locations) -> {
                     try {
                         TreeSet<Pair<Integer, Long>> existingWordLocations = invertedIndex.get(word).orElseGet(TreeSet::new);
                         TreeSet<Pair<Integer, Long>> newWordLocations = locations.stream().map(
