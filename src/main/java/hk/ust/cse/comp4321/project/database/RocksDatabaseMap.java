@@ -24,12 +24,14 @@ public class RocksDatabaseMap<K extends Serializable, V extends Serializable> {
 
         Options databaseOptions = new Options();
         databaseOptions.setCreateIfMissing(true);
-
-        String databasePath = Optional.ofNullable(System.getenv("COMP4321_DB_DIR")).orElse("database");
-        Path path = Paths.get(databasePath, databaseName);
+        //important: please change it to your absolute path!
+        String databasePath_absolute_path = "/Users/yiuwah/Library/Mobile Documents/com~apple~CloudDocs/HKUST/2526S/COMP 4321/Project/phase2/COMP4321-Search-Engine/database";
+        //String databasePath_absolute_path = Optional.ofNullable(System.getenv("COMP4321_DB_DIR")).orElse("database");
+        System.out.println(System.getenv("COMP4321_DB_DIR"));
+        Path path = Paths.get(databasePath_absolute_path, databaseName);
         File file = path.toFile();
         if (!file.exists() && !file.mkdirs())
-            throw new RuntimeException("failed to create directory for database: " + databasePath);
+            throw new RuntimeException("failed to create directory for database: " + databasePath_absolute_path);
 
         database = RocksDB.open(databaseOptions, path.toString());
     }
@@ -45,5 +47,9 @@ public class RocksDatabaseMap<K extends Serializable, V extends Serializable> {
 
     public void put(K key, V value) throws SerializationException, RocksDBException {
         database.put(SerializationUtils.serialize(key), SerializationUtils.serialize(value));
+    }
+
+    public void delete(K key) throws SerializationException, RocksDBException {
+        database.delete(SerializationUtils.serialize(key));
     }
 }

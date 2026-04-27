@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Retriever {
-    public static void search(String queryInput) {
+    public static PriorityQueue<Pair<Double, DocumentRecord>> search(String queryInput) {
         List<String> searchQuery = NLPUtil.standardizeWords(NLPUtil.extractWords(queryInput));
         System.out.println("searchQuery: " + searchQuery);
 
@@ -39,13 +39,11 @@ public class Retriever {
                 .filter(record -> webpageContainsAllPhrases(record, phrases))
                 .toList();
 
+
             PriorityQueue<Pair<Double, DocumentRecord>> similarityScores = rankDocsByDescendingSimilarityToQuery(searchQuery, records);
 
-            System.out.println("similarityScores");
-            while (!similarityScores.isEmpty()) {
-                var pair = similarityScores.poll();
-                System.out.println(pair.getLeft() + ": " + pair.getRight().url());
-            }
+
+            return similarityScores;
 
         } catch (RocksDBException e) {
             throw new RuntimeException(e);
@@ -118,7 +116,7 @@ public class Retriever {
         // [(1, 2), (3, 4), (6)] -> Does not exist
 
         // Start with all values from the first set as potential sequence starts
-        Set<Long> reachable = new HashSet<>(phraseWordLocationsInDoc.getFirst());
+        Set<Long> reachable = new HashSet<>(phraseWordLocationsInDoc.get(0));
 
         // Iterate through the remaining sets
         for (int i = 1; i < phraseWordLocationsInDoc.size(); i++) {
