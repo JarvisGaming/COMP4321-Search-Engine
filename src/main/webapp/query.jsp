@@ -138,7 +138,7 @@
                         label = "Very Relevant| 🥰";
                         color = "#28a745";
                     } else if (score >= 0.5) {
-                        label = "Relevant 😄";
+                        label = "Relevant| 😄";
                         color = "#17a2b8";
                     } else if (score >= 0.3) {
                         label = "Low Relevant| 😙";
