@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 
 public class Main {
-    public static void main(String[] args) {
+    static void main(String[] args) {
         MainCommand options = new MainCommand();
         CommandLine cmdLine = new CommandLine(options)
                 .addSubcommand(new CrawlCommand())
@@ -28,9 +28,6 @@ public class Main {
             handleSubcommand(result.subcommand(), args);
         else
             handleOptions(options, cmdLine);
-
-        var x = Retriever.search("hkust");
-
     }
 
     private static void handleOptions(@NotNull MainCommand result, @NotNull CommandLine cmdLine) {

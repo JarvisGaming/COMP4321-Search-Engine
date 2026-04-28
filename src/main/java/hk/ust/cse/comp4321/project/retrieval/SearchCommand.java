@@ -9,19 +9,18 @@ import java.util.*;
 @Command(name = "search", description = "Performs a search query.")
 public class SearchCommand implements Runnable {
     final Scanner scanner = new Scanner(System.in);
-    private PriorityQueue<Pair<Double, DocumentRecord>> results;
+
     @Override
     public void run() {
         System.out.println("Enter query: ");
-        String queryInput = scanner.nextLine();
-        results = Retriever.search(queryInput);
-    }
+        String queryInput = scanner.nextLine();  // Read user input
 
-    public PriorityQueue<Pair<Double, DocumentRecord>> query(String queryInput){
-            results = Retriever.search(queryInput);
-            return results;
-    }
-    public PriorityQueue<Pair<Double, DocumentRecord>> getResults() {
-        return results;
+        PriorityQueue<Pair<Double, DocumentRecord>> similarityScores = Retriever.search(queryInput);
+
+        System.out.println("similarityScores");
+        while (!similarityScores.isEmpty()) {
+            var pair = similarityScores.poll();
+            System.out.println(pair.getLeft() + ": " + pair.getRight().url());
+        }
     }
 }

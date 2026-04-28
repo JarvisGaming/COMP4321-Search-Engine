@@ -24,15 +24,34 @@ public class RocksDatabaseMap<K extends Serializable, V extends Serializable> {
 
         Options databaseOptions = new Options();
         databaseOptions.setCreateIfMissing(true);
-        //important: please change it to your absolute path!
-        //String databasePath_absolute_path = "/Users/yiuwah/Library/Mobile Documents/com~apple~CloudDocs/HKUST/2526S/COMP 4321/Project/phase2/COMP4321-Search-Engine/database";
-        String databasePath = "../database";
-        Path path = Paths.get(databasePath, databaseName);
-        File file = path.toFile();
-        if (!file.exists() && !file.mkdirs())
-            throw new RuntimeException("failed to create directory for database: " + databasePath);
 
-        database = RocksDB.open(databaseOptions, path.toString());
+        File file = getDatabaseFile(databaseName);
+        String path = file.getAbsolutePath();
+
+        System.out.println("Loading database from: " + path);
+
+        if (!file.exists() && !file.mkdirs())
+            throw new RuntimeException("failed to create directory for database: " + path);
+
+        database = RocksDB.open(databaseOptions, path);
+    }
+
+    // Reconcile Piccoli commands and tomcat server running from different locations
+    public static File getDatabaseFile(String databaseName) {
+        // Start at the current working directory
+        File current = new File(System.getProperty("user.dir"));
+
+        // Search upwards until we find the folder containing 'build.gradle' or 'database'
+        while (current != null) {
+            File potentialDbFolder = new File(current, "database");
+            if (potentialDbFolder.exists() && potentialDbFolder.isDirectory()) {
+                return new File(potentialDbFolder, databaseName);
+            }
+            current = current.getParentFile();
+        }
+
+        // Fallback to basic relative path if nothing found
+        return new File("database", databaseName);
     }
 
     public Optional<V> get(K key) throws ClassCastException, SerializationException, RocksDBException {

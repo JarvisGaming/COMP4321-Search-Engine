@@ -6,9 +6,7 @@ build/
 .kotlin
 
 database/
-data.db
-globalInvertedIndex.db
-spider_Result.txt
+.smarttomcat
 
 ### IntelliJ IDEA ###
 .idea
