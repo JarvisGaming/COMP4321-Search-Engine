@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="hk.ust.cse.comp4321.project.retrieval.SearchService" %>
+<%@ page import="hk.ust.cse.comp4321.project.retrieval.Retriever" %>
 <%@ page import="hk.ust.cse.comp4321.project.crawl.DocumentRecord" %>
 <%@ page import="org.apache.commons.lang3.tuple.Pair" %>
 <%@ page import="java.util.*" %>
@@ -87,7 +87,7 @@
 
         if (query != null && !query.trim().isEmpty()) {
             long startTime = System.nanoTime();
-            result = SearchService.getQuickResult(query);
+            result = Retriever.search(query);
             long endTime = System.nanoTime();
             durationSeconds = (endTime - startTime) / 1_000_000_000.0;
 

@@ -3,12 +3,13 @@ package hk.ust.cse.comp4321.project;
 import hk.ust.cse.comp4321.project.crawl.CrawlCommand;
 import hk.ust.cse.comp4321.project.database.DBDeleteCommand;
 import hk.ust.cse.comp4321.project.database.DBViewCommand;
+import hk.ust.cse.comp4321.project.retrieval.Retriever;
 import hk.ust.cse.comp4321.project.retrieval.SearchCommand;
 import org.jetbrains.annotations.NotNull;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.ParseResult;
-import hk.ust.cse.comp4321.project.retrieval.SearchService;
+
 import java.util.Arrays;
 
 
@@ -28,10 +29,7 @@ public class Main {
         else
             handleOptions(options, cmdLine);
 
-        var x = SearchService.getQuickResult("hkust");
-
-        System.out.println("-----");
-        //System.out.println(x);
+        var x = Retriever.search("hkust");
 
     }
 
