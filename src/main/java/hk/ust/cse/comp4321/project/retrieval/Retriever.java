@@ -39,10 +39,7 @@ public class Retriever {
                 .filter(record -> webpageContainsAllPhrases(record, phrases))
                 .toList();
 
-
             PriorityQueue<Pair<Double, DocumentRecord>> similarityScores = rankDocsByDescendingSimilarityToQuery(searchQuery, records);
-
-
             return similarityScores;
 
         } catch (RocksDBException e) {
@@ -116,7 +113,7 @@ public class Retriever {
         // [(1, 2), (3, 4), (6)] -> Does not exist
 
         // Start with all values from the first set as potential sequence starts
-        Set<Long> reachable = new HashSet<>(phraseWordLocationsInDoc.get(0));
+        Set<Long> reachable = new HashSet<>(phraseWordLocationsInDoc.getFirst());
 
         // Iterate through the remaining sets
         for (int i = 1; i < phraseWordLocationsInDoc.size(); i++) {

@@ -3,7 +3,6 @@ package hk.ust.cse.comp4321.project;
 import hk.ust.cse.comp4321.project.crawl.CrawlCommand;
 import hk.ust.cse.comp4321.project.database.DBDeleteCommand;
 import hk.ust.cse.comp4321.project.database.DBViewCommand;
-import hk.ust.cse.comp4321.project.retrieval.Retriever;
 import hk.ust.cse.comp4321.project.retrieval.SearchCommand;
 import org.jetbrains.annotations.NotNull;
 import picocli.CommandLine;

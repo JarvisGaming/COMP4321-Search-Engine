@@ -8,8 +8,6 @@ import org.rocksdb.RocksDBException;
 
 import java.io.File;
 import java.io.Serializable;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
