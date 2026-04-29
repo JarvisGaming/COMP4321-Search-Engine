@@ -133,30 +133,33 @@ public class Crawler {
 
     public void updateIndexes() {
         AtomicInteger recordsAdded = new AtomicInteger();
-        AtomicInteger recordsModified = new AtomicInteger();
+        AtomicInteger recordsUnmodified = new AtomicInteger();
+
         this.records.forEach(record -> {
             try {
                 Optional<Integer> optional = documentIndex.get(record.url().toString());
                 final Integer key = optional.orElseGet(documentIndex::incrementID);
 
                 Optional<DocumentRecord> recordInDatabase = recordIndex.get(key);
-                if (recordInDatabase.isPresent() && !recordInDatabase.get().lastModificationTimestamp().equals(record.lastModificationTimestamp())) {
-                    recordsModified.getAndIncrement();
+                if (recordInDatabase.isPresent() && recordInDatabase.get().lastModificationTimestamp().equals(record.lastModificationTimestamp())) {
+                    System.out.println("Unmodified: " + record.url());
+                    recordsUnmodified.getAndIncrement();
                 } else {
                     documentIndex.put(record.url().toString(), key);
+                    updateInvertedIndex(key, record.titleWordLocations(), titleInvertedIndex);
+                    updateInvertedIndex(key, record.bodyWordLocations(), bodyInvertedIndex);
+                    recordIndex.put(key, record);
+
+                    System.out.println("Added: " + record.url());
                     recordsAdded.getAndIncrement();
                 }
-
-                updateInvertedIndex(key, record.titleWordLocations(), titleInvertedIndex);
-                updateInvertedIndex(key, record.bodyWordLocations(), bodyInvertedIndex);
-                recordIndex.put(key, record);
 
             } catch (RocksDBException ignored) {
                 System.err.println("warning: failed to add url " + record.url() + " to document and record indexes");
             }
         });
 
-        System.out.println("info: " + recordsAdded + " added, " + recordsModified + " modified");
+        System.out.println("info: " + recordsAdded + " added, " + recordsUnmodified + " unmodified");
     }
 
     private static void updateInvertedIndex(Integer documentID,
