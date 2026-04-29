@@ -1,9 +1,8 @@
 package hk.ust.cse.comp4321.project.crawl;
 
 import com.google.common.collect.Streams;
-import hk.ust.cse.comp4321.project.index.DocumentIndex;
-import hk.ust.cse.comp4321.project.index.InvertedIndex;
-import hk.ust.cse.comp4321.project.index.RecordIndex;
+import hk.ust.cse.comp4321.project.database.RocksDatabaseMap;
+import hk.ust.cse.comp4321.project.index.*;
 import hk.ust.cse.comp4321.project.util.NLPUtil;
 import hk.ust.cse.comp4321.project.util.URIUtil;
 import org.apache.commons.lang3.tuple.Pair;
@@ -26,7 +25,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings("UrlHashCode")
 public class Crawler {
     private final DocumentIndex documentIndex;
-    private final InvertedIndex invertedIndex;
+    private final TitleInvertedIndex titleInvertedIndex;
+    private final BodyInvertedIndex bodyInvertedIndex;
     private final RecordIndex recordIndex;
     private final List<DocumentRecord> records;
     private final Queue<PendingURL> urlQueue;
@@ -37,7 +37,8 @@ public class Crawler {
 
     public Crawler(URL rootURL, int maxPages) throws RocksDBException {
         this.documentIndex = DocumentIndex.getInstance();
-        this.invertedIndex = InvertedIndex.getInstance();
+        this.titleInvertedIndex = TitleInvertedIndex.getInstance();
+        this.bodyInvertedIndex = BodyInvertedIndex.getInstance();
         this.recordIndex = RecordIndex.getInstance();
         this.records = new ArrayList<>();
         this.maxPages = maxPages;
@@ -146,27 +147,34 @@ public class Crawler {
                     recordsAdded.getAndIncrement();
                 }
 
-                record.bodyWordLocations().forEach((word, locations) -> {
-                    try {
-                        TreeSet<Pair<Integer, Long>> existingWordLocations = invertedIndex.get(word).orElseGet(TreeSet::new);
-                        TreeSet<Pair<Integer, Long>> newWordLocations = locations.stream().map(
-                            loc -> Pair.of(key, loc)).collect(Collectors.toCollection(TreeSet::new)
-                        );
-                        existingWordLocations.addAll(newWordLocations);
-
-                        invertedIndex.put(word, existingWordLocations);
-                    } catch (RocksDBException exception) {
-                        System.err.println("warning: failed to update invered index for url: " + record.url());
-                    }
-                });
-
+                updateInvertedIndex(key, record.titleWordLocations(), titleInvertedIndex);
+                updateInvertedIndex(key, record.bodyWordLocations(), bodyInvertedIndex);
                 recordIndex.put(key, record);
+
             } catch (RocksDBException ignored) {
                 System.err.println("warning: failed to add url " + record.url() + " to document and record indexes");
             }
         });
 
         System.out.println("info: " + recordsAdded + " added, " + recordsModified + " modified");
+    }
+
+    private static void updateInvertedIndex(Integer documentID,
+                                           Map<String, Set<Long>> wordLocations,
+                                           RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex){
+        wordLocations.forEach((word, locations) -> {
+            try {
+                TreeSet<Pair<Integer, Long>> existingWordLocations = invertedIndex.get(word).orElseGet(TreeSet::new);
+                TreeSet<Pair<Integer, Long>> newWordLocations = locations.stream().map(
+                    loc -> Pair.of(documentID, loc)).collect(Collectors.toCollection(TreeSet::new)
+                );
+                existingWordLocations.addAll(newWordLocations);
+
+                invertedIndex.put(word, existingWordLocations);
+            } catch (RocksDBException exception) {
+                System.err.println("warning: failed to update inverted index for document with ID: " + documentID);
+            }
+        });
     }
 
     private @NotNull LocalDateTime lastModifiedTimeOfResponse(@NotNull Connection.Response response) {

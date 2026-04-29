@@ -9,19 +9,19 @@ import java.util.Optional;
 import java.util.TreeSet;
 
 
-public class InvertedIndex extends RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> {
+public class TitleInvertedIndex extends RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> {
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static Optional<InvertedIndex> INSTANCE = Optional.empty();
+    private static Optional<TitleInvertedIndex> INSTANCE = Optional.empty();
 
-    public static synchronized @NotNull InvertedIndex getInstance() throws RocksDBException {
+    public static synchronized @NotNull TitleInvertedIndex getInstance() throws RocksDBException {
         if (INSTANCE.isPresent())
             return INSTANCE.get();
 
-        INSTANCE = Optional.of(new InvertedIndex());
+        INSTANCE = Optional.of(new TitleInvertedIndex());
         return INSTANCE.get();
     }
 
-    private InvertedIndex() throws RocksDBException {
-        super("InvertedIndex");
+    private TitleInvertedIndex() throws RocksDBException {
+        super("TitleInvertedIndex");
     }
 }
