@@ -97,12 +97,43 @@
             font-size: 13px;
             color: #70757a;
         }
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .exact-form button {
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            color: #3c4043;
+            font-size: 14px;
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .exact-form button:hover {
+            background-color: #e8eaed;
+        }
     </style>
 </head>
 <body>
 
-    <div class="logo">
-        <span>U</span><span>S</span><span>T</span><span>G</span><span>L</span><span>E</span>
+    <div class="top-header">
+        <div class="logo">
+            <span>U</span><span>S</span><span>T</span><span>G</span><span>L</span><span>E</span>
+        </div>
+
+        <form action="query.jsp" method="get" class="exact-form">
+            <input type="hidden" name="q"
+                   value="<%= request.getParameter("q") != null ? request.getParameter("q") : "" %>">
+
+            <button type="submit" name="exact" value="true">Exact Match</button>
+        </form>
     </div>
 
     <div class="search-container">
