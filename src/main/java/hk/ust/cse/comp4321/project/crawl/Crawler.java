@@ -75,19 +75,26 @@ public class Crawler {
             String title = document.title();
 
             List<String> titleWords = NLPUtil.standardizeWords(NLPUtil.extractWords(title));
-            List<String> words = NLPUtil.standardizeWords(NLPUtil.extractWords(document));
+            List<String> bodyWords = NLPUtil.standardizeWords(NLPUtil.extractWords(document));
 
-            Map<String, Long> titleFrequencyTable = titleWords
+            List<String> stemmedTitleWords = NLPUtil.removeStopwordsAndStem(titleWords);
+            List<String> stemmedBodyWords = NLPUtil.removeStopwordsAndStem(bodyWords);
+
+            Map<String, Long> titleFrequencyTable = stemmedTitleWords
                 .stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-            Map<String, Long> bodyFrequencyTable = words
+            Map<String, Long> bodyFrequencyTable = stemmedBodyWords
                     .stream()
                     .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-
             Map<String, Set<Long>> titleWordLocations = Streams.mapWithIndex(titleWords.stream(), Pair::of)
                 .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
-            Map<String, Set<Long>> bodyWordLocations = Streams.mapWithIndex(words.stream(), Pair::of)
+            Map<String, Set<Long>> bodyWordLocations = Streams.mapWithIndex(bodyWords.stream(), Pair::of)
+                .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
+
+            Map<String, Set<Long>> stemmedTitleWordLocations = Streams.mapWithIndex(stemmedTitleWords.stream(), Pair::of)
+                .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
+            Map<String, Set<Long>> stemmedBodyWordLocations = Streams.mapWithIndex(stemmedBodyWords.stream(), Pair::of)
                     .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
 
             List<URL> childUrls = linksFromDocument(document);
@@ -101,6 +108,8 @@ public class Crawler {
                     new HashMap<>(),
                     titleWordLocations,
                     bodyWordLocations,
+                    stemmedTitleWordLocations,
+                    stemmedBodyWordLocations,
                     pageSizeOfResponseOrDocument(response, document),
                     new HashSet<>(),
                     childUrls
@@ -146,8 +155,8 @@ public class Crawler {
                     recordsUnmodified.getAndIncrement();
                 } else {
                     documentIndex.put(record.url().toString(), key);
-                    updateInvertedIndex(key, record.titleWordLocations(), titleInvertedIndex);
-                    updateInvertedIndex(key, record.bodyWordLocations(), bodyInvertedIndex);
+                    updateInvertedIndex(key, record.stemmedTitleWordLocations(), titleInvertedIndex);
+                    updateInvertedIndex(key, record.stemmedBodyWordLocations(), bodyInvertedIndex);
                     recordIndex.put(key, record);
 
                     System.out.println("Added: " + record.url());

@@ -5,7 +5,6 @@ import hk.ust.cse.comp4321.project.index.RecordIndex;
 import hk.ust.cse.comp4321.project.util.NLPUtil;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jspecify.annotations.NonNull;
 import org.rocksdb.RocksDBException;
 
 import java.util.*;
@@ -13,26 +12,44 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Retriever {
-    public static PriorityQueue<Pair<Double, DocumentRecord>> search(String queryInput) {
-        List<List<String>> phrases = extractPhrases(queryInput);
-        System.out.println("phrases: " + phrases);
+    public static PriorityQueue<Pair<Double, DocumentRecord>> search(String queryInput, boolean exactPhraseSearch) {
+        // Find phrase search terms
+        List<String> textInQuotes = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\"([^\"]*)\"");
+        Matcher matcher = pattern.matcher(queryInput);
+        while (matcher.find()) {
+            textInQuotes.add(matcher.group(1)); // group(1) is the content without quotes
+        }
+
+        // Parse all words in quotes
+        List<List<String>> unstemmedPhrases = textInQuotes.stream()
+            .map(item -> NLPUtil.standardizeWords(NLPUtil.extractWords(item)))
+            .toList();
+        System.out.println("phrases: " + unstemmedPhrases);
+
+        List<List<String>> stemmedPhrases = unstemmedPhrases.stream()
+            .map(NLPUtil::removeStopwordsAndStem)
+            .toList();
+        System.out.println("stemmedPhrases: " + stemmedPhrases);
+
         List<String> excludedTerms = extractExcludedTerms(queryInput);
         System.out.println("excludedTerms: " + excludedTerms);
 
         // Remove negated terms from search query
-        ArrayList<String> searchQuery = new ArrayList<>(NLPUtil.standardizeWords(NLPUtil.extractWords(queryInput)));
+        ArrayList<String> searchQuery = new ArrayList<>(
+            NLPUtil.removeStopwordsAndStem(NLPUtil.standardizeWords(NLPUtil.extractWords(queryInput)))
+        );
         for (String term : excludedTerms){
             searchQuery.remove(term);
         }
         System.out.println("searchQuery: " + searchQuery);
-
 
         try {
             List<DocumentRecord> records = RecordIndex.getInstance()
                 .stream()
                 .map(Map.Entry::getValue)
                 // Filter out docs that don't match in phrase search
-                .filter(record -> webpageContainsAllPhrases(record, phrases))
+                .filter(record -> webpageContainsAllPhrases(record, unstemmedPhrases, stemmedPhrases, exactPhraseSearch))
                 // Filter out docs that contain excluded terms
                 .filter(record -> webpageDoesNotContainExcludedTerms(record, excludedTerms))
                 .toList();
@@ -43,23 +60,6 @@ public class Retriever {
         } catch (RocksDBException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static @NonNull List<List<String>> extractPhrases(String queryInput) {
-        // Find phrase search terms
-        List<String> textInQuotes = new ArrayList<>();
-        Pattern pattern = Pattern.compile("\"([^\"]*)\"");
-        Matcher matcher = pattern.matcher(queryInput);
-        while (matcher.find()) {
-            textInQuotes.add(matcher.group(1)); // group(1) is the content without quotes
-        }
-
-        // Parse all words in quotes
-        List<List<String>> phrases = textInQuotes.stream()
-            .map(item -> NLPUtil.standardizeWords(NLPUtil.extractWords(item)))
-            .toList();
-
-        return phrases;
     }
 
     private static List<String> extractExcludedTerms(String queryInput){
@@ -73,7 +73,7 @@ public class Retriever {
             }
         }
 
-        return NLPUtil.standardizeWords(excludedTerms);
+        return NLPUtil.removeStopwordsAndStem(NLPUtil.standardizeWords(excludedTerms));
     }
 
     private static PriorityQueue<Pair<Double, DocumentRecord>> rankDocsByDescendingSimilarityToQuery(List<String> searchQuery, List<DocumentRecord> records){
@@ -118,20 +118,35 @@ public class Retriever {
         return similarityFactor / (documentLengthNormalizationFactor * queryLengthNormalizationFactor);
     }
 
-    private static boolean webpageContainsAllPhrases(DocumentRecord record, List<List<String>> phrases){
-        for (List<String> phrase : phrases){
-            if (!webpageSectionContainsPhrase(record.titleWordLocations(), phrase) &&
-                !webpageSectionContainsPhrase(record.bodyWordLocations(), phrase)) return false;
+    private static boolean webpageContainsAllPhrases(DocumentRecord record,
+                                                     List<List<String>> unstemmedPhrases,
+                                                     List<List<String>> stemmedPhrases,
+                                                     boolean exactPhraseSearch){
+        // Exact phrase search
+        if (exactPhraseSearch){
+            for (List<String> phrase : unstemmedPhrases){
+                if (webpageSectionDoesNotContainsPhrase(record.titleWordLocations(), phrase) &&
+                    webpageSectionDoesNotContainsPhrase(record.bodyWordLocations(), phrase)) return false;
+            }
         }
+
+        // Inexact phrase search with stemmed doc words
+        else {
+            for (List<String> phrase : stemmedPhrases){
+                if (webpageSectionDoesNotContainsPhrase(record.stemmedTitleWordLocations(), phrase) &&
+                    webpageSectionDoesNotContainsPhrase(record.stemmedBodyWordLocations(), phrase)) return false;
+            }
+        }
+
         return true;
     }
 
-    private static boolean webpageSectionContainsPhrase(Map<String, Set<Long>> wordLocations, List<String> phrase){
+    private static boolean webpageSectionDoesNotContainsPhrase(Map<String, Set<Long>> wordLocations, List<String> phrase){
         List<Set<Long>> phraseWordLocationsInDoc = new ArrayList<>();  // e.g. [(45, 123), (46), (47, 1239)]
         for (String word : phrase){
             // Doc does not contain all the words in the phrase
             if (!wordLocations.containsKey(word))
-                return false;
+                return true;
 
             phraseWordLocationsInDoc.add(wordLocations.get(word));
         }
@@ -159,13 +174,13 @@ public class Retriever {
 
             // If no values can be extended, the sequence cannot exist
             if (nextReachable.isEmpty()) {
-                return false;
+                return true;
             }
             reachable = nextReachable;
         }
 
         // Successfully reached the last set
-        return true;
+        return false;
     }
 
     private static boolean webpageDoesNotContainExcludedTerms(DocumentRecord record, List<String> excludedTerms){

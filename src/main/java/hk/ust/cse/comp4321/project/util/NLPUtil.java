@@ -18,6 +18,11 @@ public class NLPUtil {
         return words.stream()
             .map(String::toLowerCase)
             .filter(NLPUtil::isAlphaNumeric)
+            .toList();
+    }
+
+    public static List<String> removeStopwordsAndStem(List<String> words){
+        return words.stream()
             .filter(NLPUtil::isNotStopword)
             .map(NLPUtil::stem)
             .toList();

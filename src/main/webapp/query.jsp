@@ -87,7 +87,7 @@
 
         if (query != null && !query.trim().isEmpty()) {
             long startTime = System.nanoTime();
-            result = Retriever.search(query);
+            result = Retriever.search(query, true);
             long endTime = System.nanoTime();
             durationSeconds = (endTime - startTime) / 1_000_000_000.0;
 
