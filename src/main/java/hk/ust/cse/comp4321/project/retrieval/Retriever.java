@@ -5,6 +5,7 @@ import hk.ust.cse.comp4321.project.index.RecordIndex;
 import hk.ust.cse.comp4321.project.util.NLPUtil;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jspecify.annotations.NonNull;
 import org.rocksdb.RocksDBException;
 
 import java.util.*;
@@ -13,9 +14,38 @@ import java.util.regex.Pattern;
 
 public class Retriever {
     public static PriorityQueue<Pair<Double, DocumentRecord>> search(String queryInput) {
-        List<String> searchQuery = NLPUtil.standardizeWords(NLPUtil.extractWords(queryInput));
+        List<List<String>> phrases = extractPhrases(queryInput);
+        System.out.println("phrases: " + phrases);
+        List<String> excludedTerms = extractExcludedTerms(queryInput);
+        System.out.println("excludedTerms: " + excludedTerms);
+
+        // Remove negated terms from search query
+        ArrayList<String> searchQuery = new ArrayList<>(NLPUtil.standardizeWords(NLPUtil.extractWords(queryInput)));
+        for (String term : excludedTerms){
+            searchQuery.remove(term);
+        }
         System.out.println("searchQuery: " + searchQuery);
 
+
+        try {
+            List<DocumentRecord> records = RecordIndex.getInstance()
+                .stream()
+                .map(Map.Entry::getValue)
+                // Filter out docs that don't match in phrase search
+                .filter(record -> webpageContainsAllPhrases(record, phrases))
+                // Filter out docs that contain excluded terms
+                .filter(record -> webpageDoesNotContainExcludedTerms(record, excludedTerms))
+                .toList();
+
+            PriorityQueue<Pair<Double, DocumentRecord>> similarityScores = rankDocsByDescendingSimilarityToQuery(searchQuery, records);
+            return similarityScores;
+
+        } catch (RocksDBException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static @NonNull List<List<String>> extractPhrases(String queryInput) {
         // Find phrase search terms
         List<String> textInQuotes = new ArrayList<>();
         Pattern pattern = Pattern.compile("\"([^\"]*)\"");
@@ -29,25 +59,24 @@ public class Retriever {
             .map(item -> NLPUtil.standardizeWords(NLPUtil.extractWords(item)))
             .toList();
 
-        System.out.println("phrases: " + phrases);
-
-        try {
-            List<DocumentRecord> records = RecordIndex.getInstance()
-                .stream()
-                .map(Map.Entry::getValue)
-                // Filter out docs that don't match in phrase search
-                .filter(record -> webpageContainsAllPhrases(record, phrases))
-                .toList();
-
-            PriorityQueue<Pair<Double, DocumentRecord>> similarityScores = rankDocsByDescendingSimilarityToQuery(searchQuery, records);
-            return similarityScores;
-
-        } catch (RocksDBException e) {
-            throw new RuntimeException(e);
-        }
+        return phrases;
     }
 
-    public static PriorityQueue<Pair<Double, DocumentRecord>> rankDocsByDescendingSimilarityToQuery(List<String> searchQuery, List<DocumentRecord> records){
+    private static List<String> extractExcludedTerms(String queryInput){
+        List<String> excludedTerms = new ArrayList<>();
+        String[] tokens = queryInput.split("\\s+");
+
+        for (String token : tokens) {
+            if (token.startsWith("-") && token.length() > 1) {
+                // Remove leading hyphen
+                excludedTerms.add(token.substring(1));
+            }
+        }
+
+        return NLPUtil.standardizeWords(excludedTerms);
+    }
+
+    private static PriorityQueue<Pair<Double, DocumentRecord>> rankDocsByDescendingSimilarityToQuery(List<String> searchQuery, List<DocumentRecord> records){
         PriorityQueue<Pair<Double, DocumentRecord>> similarityScores = new PriorityQueue<>(
             Map.Entry.<Double, DocumentRecord>comparingByKey().reversed()
         );
@@ -89,7 +118,7 @@ public class Retriever {
         return similarityFactor / (documentLengthNormalizationFactor * queryLengthNormalizationFactor);
     }
 
-    public static boolean webpageContainsAllPhrases(DocumentRecord record, List<List<String>> phrases){
+    private static boolean webpageContainsAllPhrases(DocumentRecord record, List<List<String>> phrases){
         for (List<String> phrase : phrases){
             if (!webpageSectionContainsPhrase(record.titleWordLocations(), phrase) &&
                 !webpageSectionContainsPhrase(record.bodyWordLocations(), phrase)) return false;
@@ -136,6 +165,17 @@ public class Retriever {
         }
 
         // Successfully reached the last set
+        return true;
+    }
+
+    private static boolean webpageDoesNotContainExcludedTerms(DocumentRecord record, List<String> excludedTerms){
+        var titleTerms = record.titleTermFrequencies().keySet();
+        var bodyTerms = record.bodyTermFrequencies().keySet();
+
+        for (String term : excludedTerms){
+            if (titleTerms.contains(term) || bodyTerms.contains(term))
+                return false;
+        }
         return true;
     }
 }
