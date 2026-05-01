@@ -142,6 +142,8 @@ public class Retriever {
     }
 
     private static boolean webpageSectionDoesNotContainsPhrase(Map<String, Set<Long>> wordLocations, List<String> phrase){
+        if (phrase.isEmpty()) return false;
+
         List<Set<Long>> phraseWordLocationsInDoc = new ArrayList<>();  // e.g. [(45, 123), (46), (47, 1239)]
         for (String word : phrase){
             // Doc does not contain all the words in the phrase
