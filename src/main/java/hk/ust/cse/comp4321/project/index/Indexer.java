@@ -1,9 +1,6 @@
 package hk.ust.cse.comp4321.project.index;
 
 import hk.ust.cse.comp4321.project.crawl.DocumentRecord;
-import hk.ust.cse.comp4321.project.database.RocksDatabaseMap;
-import org.apache.commons.lang3.tuple.Pair;
-import org.rocksdb.RocksDBException;
 
 import java.util.*;
 import java.util.stream.Collectors;

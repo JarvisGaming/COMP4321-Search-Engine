@@ -15,7 +15,7 @@ public class CrawlCommand implements Runnable {
     @Option(names = {"--url"}, description = "The URL to start crawling from.", defaultValue = "https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm")
     private String rootURL;
 
-    @Option(names = {"--pages"}, description = "The maximum number of unique pages to crawl.", defaultValue = "30")
+    @Option(names = {"--pages"}, description = "The maximum number of unique pages to crawl.", defaultValue = "300")
     private int maxPages;
 
     @Override
