@@ -1,6 +1,6 @@
 package hk.ust.cse.comp4321.project.nlp;
 
-import edu.stanford.nlp.process.Morphology;
+import opennlp.tools.stemmer.PorterStemmer;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -12,11 +12,11 @@ import java.util.stream.Collectors;
 
 
 public class StopwordStem {
-    private final Morphology morphology;
+    private final PorterStemmer  stemmer;
     private final Set<String> stopwords;
 
     public StopwordStem() {
-        morphology = new Morphology();
+        stemmer = new PorterStemmer();
         HashSet<String> temp;
 
         InputStream stream = StopwordStem.class.getResourceAsStream("/stopwords.txt");
@@ -33,6 +33,6 @@ public class StopwordStem {
     }
 
     public String stem(String word) {
-        return morphology.stem(word);
+        return stemmer.stem(word);
     }
 }

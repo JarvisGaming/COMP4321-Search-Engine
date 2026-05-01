@@ -14,7 +14,8 @@ repositories {
 dependencies {
     compileOnly 'org.jetbrains:annotations:26.0.2'
     implementation 'commons-dbutils:commons-dbutils:1.8.1'
-    implementation 'edu.stanford.nlp:stanford-corenlp:4.5.5'
+    implementation 'org.apache.commons:commons-lang3:3.20.0'
+    implementation 'org.apache.opennlp:opennlp-tools:2.5.3'
     implementation 'com.google.guava:guava:33.5.0-jre'
     implementation 'info.picocli:picocli:4.7.7'
     implementation 'org.jsoup:jsoup:1.22.1'
