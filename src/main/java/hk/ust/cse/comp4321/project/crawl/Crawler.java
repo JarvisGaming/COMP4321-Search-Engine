@@ -48,6 +48,13 @@ public class Crawler {
         this.urlQueue.add(new PendingURL(rootURL, 0));
     }
 
+    public void close() {
+        this.documentIndex.close();
+        this.titleInvertedIndex.close();
+        this.bodyInvertedIndex.close();
+        this.recordIndex.close();
+    }
+
     public void crawl() {
         while (!urlQueue.isEmpty()) {
             PendingURL current = urlQueue.poll();
@@ -126,13 +133,13 @@ public class Crawler {
         return this.records;
     }
 
-    private void populateParentURLs(){
+    private void populateParentURLs() {
         Map<URL, DocumentRecord> urlToRecordsMap = this.records.stream().collect(
             Collectors.toMap(DocumentRecord::url, item -> item)
         );
 
-        for (DocumentRecord parentRecord : this.records){
-            for (URL childURL : parentRecord.childURLs()){
+        for (DocumentRecord parentRecord : this.records) {
+            for (URL childURL : parentRecord.childURLs()) {
                 DocumentRecord childRecord = urlToRecordsMap.get(childURL);
                 if (childRecord == null) continue;
                 childRecord.parentURLs().add(parentRecord.url());
@@ -142,27 +149,43 @@ public class Crawler {
 
     public void updateIndexes() {
         AtomicInteger recordsAdded = new AtomicInteger();
+        AtomicInteger recordsUpdated = new AtomicInteger();
         AtomicInteger recordsUnmodified = new AtomicInteger();
 
         this.records.forEach(record -> {
             try {
-                Optional<Integer> optional = documentIndex.get(record.url().toString());
-                final Integer key = optional.orElseGet(documentIndex::incrementID);
+                Integer docId = documentIndex.get(record.url().toString())
+                        .orElseGet(() -> {
+                            int newId = documentIndex.incrementID();
+                            try {
+                                documentIndex.put(record.url().toString(), newId);
+                            } catch (Exception _) {}
+                            return newId;
+                        });
 
-                Optional<DocumentRecord> recordInDatabase = recordIndex.get(key);
-                if (recordInDatabase.isPresent() && recordInDatabase.get().lastModificationTimestamp().equals(record.lastModificationTimestamp())) {
+                Optional<DocumentRecord> existingOpt = recordIndex.get(docId);
+
+                if (existingOpt.isPresent() &&
+                        existingOpt.get().lastModificationTimestamp()
+                                .equals(record.lastModificationTimestamp())) {
+
+                    recordsUnmodified.incrementAndGet();
                     System.out.println("Unmodified: " + record.url());
-                    recordsUnmodified.getAndIncrement();
+
                 } else {
-                    documentIndex.put(record.url().toString(), key);
-                    updateInvertedIndex(key, record.stemmedTitleWordLocations(), titleInvertedIndex);
-                    updateInvertedIndex(key, record.stemmedBodyWordLocations(), bodyInvertedIndex);
-                    recordIndex.put(key, record);
+                    updateInvertedIndex(docId, record.stemmedTitleWordLocations(), titleInvertedIndex);
+                    updateInvertedIndex(docId, record.stemmedBodyWordLocations(), bodyInvertedIndex);
 
-                    System.out.println("Added: " + record.url());
-                    recordsAdded.getAndIncrement();
+                    recordIndex.put(docId, record);
+
+                    if (existingOpt.isPresent()) {
+                        recordsUpdated.incrementAndGet();
+                        System.out.println("Updated: " + record.url());
+                    } else {
+                        recordsAdded.incrementAndGet();
+                        System.out.println("Added: " + record.url());
+                    }
                 }
-
             } catch (RocksDBException ignored) {
                 System.err.println("warning: failed to add url " + record.url() + " to document and record indexes");
             }
@@ -173,7 +196,7 @@ public class Crawler {
 
     private static void updateInvertedIndex(Integer documentID,
                                            Map<String, Set<Long>> wordLocations,
-                                           RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex){
+                                           RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex) {
         wordLocations.forEach((word, locations) -> {
             try {
                 TreeSet<Pair<Integer, Long>> existingWordLocations = invertedIndex.get(word).orElseGet(TreeSet::new);
