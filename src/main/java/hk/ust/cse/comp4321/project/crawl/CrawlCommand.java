@@ -58,5 +58,6 @@ public class CrawlCommand implements Runnable {
         Indexer.populateTermWeights(records, titleDFs, bodyDFs);
 
         crawler.updateIndexes();
+        crawler.close();
     }
 }

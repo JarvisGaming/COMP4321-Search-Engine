@@ -52,20 +52,24 @@ public class RocksDatabaseMap<K extends Serializable, V extends Serializable> {
         return new File("database", databaseName);
     }
 
-    public Optional<V> get(K key) throws ClassCastException, SerializationException, RocksDBException {
-        return Optional.ofNullable(database.get(SerializationUtils.serialize(key))).map(SerializationUtils::deserialize);
+    public void close() {
+        database.close();
     }
 
-    public Stream<Map.Entry<K, V>> stream() {
-        RocksSpliterator<K, V> iterator = new RocksSpliterator<>(database.newIterator());
-        return StreamSupport.stream(iterator, false).onClose(iterator::close);
+    public void delete(K key) throws SerializationException, RocksDBException {
+        database.delete(SerializationUtils.serialize(key));
+    }
+
+    public Optional<V> get(K key) throws ClassCastException, SerializationException, RocksDBException {
+        return Optional.ofNullable(database.get(SerializationUtils.serialize(key))).map(SerializationUtils::deserialize);
     }
 
     public void put(K key, V value) throws SerializationException, RocksDBException {
         database.put(SerializationUtils.serialize(key), SerializationUtils.serialize(value));
     }
 
-    public void delete(K key) throws SerializationException, RocksDBException {
-        database.delete(SerializationUtils.serialize(key));
+    public Stream<Map.Entry<K, V>> stream() {
+        RocksSpliterator<K, V> iterator = new RocksSpliterator<>(database.newIterator());
+        return StreamSupport.stream(iterator, false).onClose(iterator::close);
     }
 }
