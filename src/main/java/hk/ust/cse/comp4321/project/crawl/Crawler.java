@@ -156,11 +156,14 @@ public class Crawler {
             try {
                 Integer docId = documentIndex.get(record.url().toString())
                         .orElseGet(() -> {
-                            int newId = documentIndex.incrementID();
                             try {
+                                int newId = documentIndex.incrementID();
                                 documentIndex.put(record.url().toString(), newId);
-                            } catch (Exception _) {}
-                            return newId;
+
+                                return newId;
+                            } catch (RocksDBException e) {
+                                throw new RuntimeException(e);
+                            }
                         });
 
                 Optional<DocumentRecord> existingOpt = recordIndex.get(docId);
@@ -171,7 +174,6 @@ public class Crawler {
 
                     recordsUnmodified.incrementAndGet();
                     System.out.println("Unmodified: " + record.url());
-
                 } else {
                     updateInvertedIndex(docId, record.stemmedTitleWordLocations(), titleInvertedIndex);
                     updateInvertedIndex(docId, record.stemmedBodyWordLocations(), bodyInvertedIndex);
