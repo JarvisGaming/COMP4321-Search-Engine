@@ -42,11 +42,12 @@ public class CrawlCommand implements Runnable {
         System.out.println("info: crawler has retrieved " + numRecords + " documents after crawling");
 
         // Fill in all indexes, except for term weights in RecordIndex
-        crawler.updateIndexes();
+        boolean needToRecomputeTermWeights = crawler.updateIndexes();
 
         try {
             // Calculate term weights (for both title and body terms)
-            Indexer.populateTermWeights();
+            if (needToRecomputeTermWeights) Indexer.populateTermWeights();
+            else System.out.println("Computing term weights skipped");
         } catch (Exception e) {
             System.err.println("error: failed to populate term weights: " + e);
         }

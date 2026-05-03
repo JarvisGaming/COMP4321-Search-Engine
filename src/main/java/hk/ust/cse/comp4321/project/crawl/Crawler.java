@@ -147,7 +147,8 @@ public class Crawler {
         }
     }
 
-    public void updateIndexes() {
+    // Return true if any record was added or updated, false otherwise
+    public boolean updateIndexes() {
         AtomicInteger recordsAdded = new AtomicInteger();
         AtomicInteger recordsUpdated = new AtomicInteger();
         AtomicInteger recordsUnmodified = new AtomicInteger();
@@ -194,6 +195,8 @@ public class Crawler {
         });
 
         System.out.println("info: " + recordsAdded + " added, " + recordsUnmodified + " unmodified");
+
+        return recordsAdded.get() > 0 || recordsUpdated.get() > 0;
     }
 
     private static void updateInvertedIndex(Integer documentID,
