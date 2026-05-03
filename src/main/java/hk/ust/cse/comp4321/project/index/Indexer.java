@@ -1,34 +1,47 @@
 package hk.ust.cse.comp4321.project.index;
 
 import hk.ust.cse.comp4321.project.crawl.DocumentRecord;
+import hk.ust.cse.comp4321.project.database.RocksDatabaseMap;
+import org.apache.commons.lang3.tuple.Pair;
+import org.rocksdb.RocksDBException;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Indexer {
-    public static Map<String, Long> getDocumentFrequencies(List<Set<String>> perDocumentTerms){
-        HashMap<String, Long> dfs = new HashMap<>();
-        HashSet<String> uniqueTerms = perDocumentTerms.stream()
-            .flatMap(Set::stream)
-            .collect(Collectors.toCollection(HashSet::new));
-
-        for (String term : uniqueTerms){
-            long df = 0;
-            for (Set<String> documentSpecificTerms : perDocumentTerms){
-                if (documentSpecificTerms.contains(term))
-                    df++;
-            }
-            dfs.put(term, df);
-        }
-
-        return dfs;
+    public static Map<String, Long> getDocumentFrequencies(RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex){
+        return invertedIndex.stream()
+            .map(entry -> {
+                String term = entry.getKey();
+                TreeSet<Pair<Integer, Long>> postings = entry.getValue();
+                long df = postings.stream()
+                    .map(Pair::getLeft)
+                    .distinct()
+                    .count();
+                return new AbstractMap.SimpleEntry<>(term, df);
+            })
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public static void populateTermWeights(List<DocumentRecord> records,
-                                           Map<String, Long> titleDFs,
-                                           Map<String, Long> bodyDFs) {
+    public static void populateTermWeights() throws RocksDBException {
+        TitleInvertedIndex titleInvertedIndex = TitleInvertedIndex.getInstance();
+        BodyInvertedIndex bodyInvertedIndex = BodyInvertedIndex.getInstance();
+
+        Map<String, Long> titleDFs = getDocumentFrequencies(titleInvertedIndex);
+        Map<String, Long> bodyDFs = getDocumentFrequencies(bodyInvertedIndex);
+
+        titleInvertedIndex.close();
+        bodyInvertedIndex.close();
+
+        // Retrieve all records
+        RecordIndex recordIndex = RecordIndex.getInstance();
+        List<Map.Entry<Integer, DocumentRecord>> records = recordIndex.stream().toList();
+
         int numRecords = records.size();
-        for (DocumentRecord record : records) {
+        for (Map.Entry<Integer, DocumentRecord> entry : records) {
+            int documentID = entry.getKey();
+            DocumentRecord record = entry.getValue();
+
             computeAndStoreWeights(record.titleTermFrequencies(),
                 titleDFs,
                 numRecords,
@@ -37,13 +50,21 @@ public class Indexer {
                 bodyDFs,
                 numRecords,
                 record.bodyTermWeights());
+
+            // Update RecordIndex with new record with term weights
+            recordIndex.put(documentID, record);
         }
+
+        recordIndex.close();
     }
 
     private static void computeAndStoreWeights(Map<String, Long> termFrequencies,
                                                Map<String, Long> dfs,
                                                int numRecords,
                                                Map<String, Double> targetWeights) {
+        // Empty out targetWeights first, in case of webpage content changes
+        targetWeights.clear();
+
         if (termFrequencies.isEmpty())
             return;
 
