@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @Command(name = "crawl", description = "Crawl pages from a starting link.")
 public class CrawlCommand implements Runnable {
-    @Option(names = {"--url"}, description = "The URL to start crawling from.", defaultValue = "https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm")
+    @Option(names = {"--url"}, description = "The URL to start crawling from.", defaultValue = "https://hitcslj.github.io/TestPages/testpage.htm")
     private String rootURL;
 
     @Option(names = {"--pages"}, description = "The maximum number of unique pages to crawl.", defaultValue = "300")

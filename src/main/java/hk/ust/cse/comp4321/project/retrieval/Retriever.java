@@ -93,7 +93,7 @@ public class Retriever {
 
             // Derive and implement a mechanism to favor matches in the title. For example, a match in
             // the title would significantly boost the rank of a page
-            double totalScore = titleSimilarityScore + bodySimilarityScore;
+            double totalScore = 0.5 * titleSimilarityScore + bodySimilarityScore;
             similarityScores.add(new ImmutablePair<>(totalScore, record));
         }
 

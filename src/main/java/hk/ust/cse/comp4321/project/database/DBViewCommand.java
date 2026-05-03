@@ -29,6 +29,8 @@ public class DBViewCommand implements Runnable {
             };
 
             index.stream().limit(maxItemsToDisplay).forEach(item -> System.out.println(item + "\n"));
+            index.close();
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
