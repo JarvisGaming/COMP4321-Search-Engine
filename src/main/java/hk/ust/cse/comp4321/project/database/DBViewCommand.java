@@ -9,7 +9,7 @@ import picocli.CommandLine.*;
 
 @Command(name = "db_view", description = "Prints out an entire index.")
 public class DBViewCommand implements Runnable {
-    @Option(names = {"--index"}, description = "The index to print out: document / inverted / record", defaultValue = "document")
+    @Option(names = {"--index"}, description = "The index to print out: document / title / body / record", defaultValue = "document")
     private String indexName;
 
     @Option(names = {"--limit"}, description = "The maximum number of db entries to display", defaultValue = "99999999")
