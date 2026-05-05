@@ -1,6 +1,7 @@
 package hk.ust.cse.comp4321.project;
 
 import hk.ust.cse.comp4321.project.crawl.CrawlCommand;
+import hk.ust.cse.comp4321.project.crawl.SpiderResultCommand;
 import hk.ust.cse.comp4321.project.database.DBDeleteCommand;
 import hk.ust.cse.comp4321.project.database.DBViewCommand;
 import hk.ust.cse.comp4321.project.database.PostingViewCommand;
@@ -22,6 +23,7 @@ public class Main {
                 .addSubcommand(new DBDeleteCommand())
                 .addSubcommand(new SearchCommand())
                 .addSubcommand(new PostingViewCommand())
+                .addSubcommand(new SpiderResultCommand())
                 .setCommandName("phase2");
 
         ParseResult result = cmdLine.parseArgs(args);
