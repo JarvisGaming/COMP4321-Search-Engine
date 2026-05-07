@@ -88,19 +88,19 @@ public class Crawler {
             List<String> stemmedBodyWords = NLPUtil.removeStopwordsAndStem(bodyWords);
 
             Map<String, Long> titleFrequencyTable = stemmedTitleWords
-                .stream()
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+                    .stream()
+                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
             Map<String, Long> bodyFrequencyTable = stemmedBodyWords
                     .stream()
                     .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
             Map<String, Set<Long>> titleWordLocations = Streams.mapWithIndex(titleWords.stream(), Pair::of)
-                .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
+                    .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
             Map<String, Set<Long>> bodyWordLocations = Streams.mapWithIndex(bodyWords.stream(), Pair::of)
-                .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
+                    .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
 
             Map<String, Set<Long>> stemmedTitleWordLocations = Streams.mapWithIndex(stemmedTitleWords.stream(), Pair::of)
-                .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
+                    .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
             Map<String, Set<Long>> stemmedBodyWordLocations = Streams.mapWithIndex(stemmedBodyWords.stream(), Pair::of)
                     .collect(Collectors.groupingBy(Pair::getLeft, Collectors.mapping(Pair::getRight, Collectors.toSet())));
 
@@ -135,7 +135,7 @@ public class Crawler {
 
     private void populateParentURLs() {
         Map<URL, DocumentRecord> urlToRecordsMap = this.records.stream().collect(
-            Collectors.toMap(DocumentRecord::url, item -> item)
+                Collectors.toMap(DocumentRecord::url, item -> item)
         );
 
         for (DocumentRecord parentRecord : this.records) {
@@ -176,18 +176,22 @@ public class Crawler {
                     recordsUnmodified.incrementAndGet();
                     System.out.println("Unmodified: " + record.url());
                 } else {
-                    updateInvertedIndex(docId, record.stemmedTitleWordLocations(), titleInvertedIndex);
-                    updateInvertedIndex(docId, record.stemmedBodyWordLocations(), bodyInvertedIndex);
-
-                    recordIndex.put(docId, record);
-
                     if (existingOpt.isPresent()) {
                         recordsUpdated.incrementAndGet();
+
+                        deleteInvertedIndex(docId, record.stemmedTitleWordLocations(), titleInvertedIndex);
+                        deleteInvertedIndex(docId, record.stemmedBodyWordLocations(), bodyInvertedIndex);
+                        
                         System.out.println("Updated: " + record.url());
                     } else {
                         recordsAdded.incrementAndGet();
                         System.out.println("Added: " + record.url());
                     }
+
+                    updateInvertedIndex(docId, record.stemmedTitleWordLocations(), titleInvertedIndex);
+                    updateInvertedIndex(docId, record.stemmedBodyWordLocations(), bodyInvertedIndex);
+
+                    recordIndex.put(docId, record);
                 }
             } catch (RocksDBException ignored) {
                 System.err.println("warning: failed to add url " + record.url() + " to document and record indexes");
@@ -200,19 +204,39 @@ public class Crawler {
     }
 
     private static void updateInvertedIndex(Integer documentID,
-                                           Map<String, Set<Long>> wordLocations,
-                                           RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex) {
+                                            Map<String, Set<Long>> wordLocations,
+                                            RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex) {
         wordLocations.forEach((word, locations) -> {
             try {
                 TreeSet<Pair<Integer, Long>> existingWordLocations = invertedIndex.get(word).orElseGet(TreeSet::new);
                 TreeSet<Pair<Integer, Long>> newWordLocations = locations.stream().map(
-                    loc -> Pair.of(documentID, loc)).collect(Collectors.toCollection(TreeSet::new)
+                        loc -> Pair.of(documentID, loc)).collect(Collectors.toCollection(TreeSet::new)
                 );
                 existingWordLocations.addAll(newWordLocations);
 
                 invertedIndex.put(word, existingWordLocations);
             } catch (RocksDBException exception) {
                 System.err.println("warning: failed to update inverted index for document with ID: " + documentID);
+            }
+        });
+    }
+
+    private static void deleteInvertedIndex(Integer documentID, Map<String, Set<Long>> wordLocations, RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex) {
+        wordLocations.forEach((word, _) -> {
+            try {
+                Optional<TreeSet<Pair<Integer, Long>>> opt = invertedIndex.get(word);
+                if (opt.isEmpty()) return;
+
+                TreeSet<Pair<Integer, Long>> postings = opt.get();
+                // Remove all entries in the postings for this document
+                postings.removeIf(pair -> pair.getLeft().equals(documentID));
+                if (postings.isEmpty()) {
+                    invertedIndex.delete(word);
+                } else {
+                    invertedIndex.put(word, postings);
+                }
+            } catch (RocksDBException e) {
+                System.err.println("warning: failed to delete inverted index (modification) for document with ID: " + documentID);
             }
         });
     }

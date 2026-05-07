@@ -5,6 +5,7 @@ import picocli.CommandLine.Command;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
+
 import org.apache.commons.io.FileUtils;
 
 @Command(name = "db_delete", description = "Deletes all database files.")

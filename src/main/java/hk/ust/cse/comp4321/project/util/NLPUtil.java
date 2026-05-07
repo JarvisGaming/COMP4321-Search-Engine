@@ -16,16 +16,16 @@ public class NLPUtil {
     // Prepare document body/title or query for downstream tasks
     public static List<String> standardizeWords(List<String> words) {
         return words.stream()
-            .map(String::toLowerCase)
-            .filter(NLPUtil::isAlphaNumeric)
-            .toList();
+                .map(String::toLowerCase)
+                .filter(NLPUtil::isAlphaNumeric)
+                .toList();
     }
 
-    public static List<String> removeStopwordsAndStem(List<String> words){
+    public static List<String> removeStopwordsAndStem(List<String> words) {
         return words.stream()
-            .filter(NLPUtil::isNotStopword)
-            .map(NLPUtil::stem)
-            .toList();
+                .filter(NLPUtil::isNotStopword)
+                .map(NLPUtil::stem)
+                .toList();
     }
 
     public static List<String> extractWords(@NotNull Document document) {

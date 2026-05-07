@@ -23,13 +23,13 @@ public class Retriever {
 
         // Parse all words in quotes
         List<List<String>> unstemmedPhrases = textInQuotes.stream()
-            .map(item -> NLPUtil.standardizeWords(NLPUtil.extractWords(item)))
-            .toList();
+                .map(item -> NLPUtil.standardizeWords(NLPUtil.extractWords(item)))
+                .toList();
         System.out.println("phrases: " + unstemmedPhrases);
 
         List<List<String>> stemmedPhrases = unstemmedPhrases.stream()
-            .map(NLPUtil::removeStopwordsAndStem)
-            .toList();
+                .map(NLPUtil::removeStopwordsAndStem)
+                .toList();
         System.out.println("stemmedPhrases: " + stemmedPhrases);
 
         List<String> excludedTerms = extractExcludedTerms(queryInput);
@@ -37,22 +37,22 @@ public class Retriever {
 
         // Remove negated terms from search query
         ArrayList<String> searchQuery = new ArrayList<>(
-            NLPUtil.removeStopwordsAndStem(NLPUtil.standardizeWords(NLPUtil.extractWords(queryInput)))
+                NLPUtil.removeStopwordsAndStem(NLPUtil.standardizeWords(NLPUtil.extractWords(queryInput)))
         );
-        for (String term : excludedTerms){
+        for (String term : excludedTerms) {
             searchQuery.remove(term);
         }
         System.out.println("searchQuery: " + searchQuery);
 
         try {
             List<DocumentRecord> records = RecordIndex.getInstance()
-                .stream()
-                .map(Map.Entry::getValue)
-                // Filter out docs that don't match in phrase search
-                .filter(record -> webpageContainsAllPhrases(record, unstemmedPhrases, stemmedPhrases, exactPhraseSearch))
-                // Filter out docs that contain excluded terms
-                .filter(record -> webpageDoesNotContainExcludedTerms(record, excludedTerms))
-                .toList();
+                    .stream()
+                    .map(Map.Entry::getValue)
+                    // Filter out docs that don't match in phrase search
+                    .filter(record -> webpageContainsAllPhrases(record, unstemmedPhrases, stemmedPhrases, exactPhraseSearch))
+                    // Filter out docs that contain excluded terms
+                    .filter(record -> webpageDoesNotContainExcludedTerms(record, excludedTerms))
+                    .toList();
 
             PriorityQueue<Pair<Double, DocumentRecord>> similarityScores = rankDocsByDescendingSimilarityToQuery(searchQuery, records);
             return similarityScores;
@@ -62,7 +62,7 @@ public class Retriever {
         }
     }
 
-    private static List<String> extractExcludedTerms(String queryInput){
+    private static List<String> extractExcludedTerms(String queryInput) {
         List<String> excludedTerms = new ArrayList<>();
         String[] tokens = queryInput.split("\\s+");
 
@@ -76,12 +76,12 @@ public class Retriever {
         return NLPUtil.removeStopwordsAndStem(NLPUtil.standardizeWords(excludedTerms));
     }
 
-    private static PriorityQueue<Pair<Double, DocumentRecord>> rankDocsByDescendingSimilarityToQuery(List<String> searchQuery, List<DocumentRecord> records){
+    private static PriorityQueue<Pair<Double, DocumentRecord>> rankDocsByDescendingSimilarityToQuery(List<String> searchQuery, List<DocumentRecord> records) {
         PriorityQueue<Pair<Double, DocumentRecord>> similarityScores = new PriorityQueue<>(
-            Map.Entry.<Double, DocumentRecord>comparingByKey().reversed()
+                Map.Entry.<Double, DocumentRecord>comparingByKey().reversed()
         );
 
-        for (DocumentRecord record : records){
+        for (DocumentRecord record : records) {
             // Calculate cosine similarity between document and query (for both title and body)
             // Use unweighted query terms
 
@@ -103,7 +103,7 @@ public class Retriever {
     private static double calculateSimilarityScore(List<String> searchQuery, Set<String> documentTerms, Map<String, Double> termWeights) {
         double similarityFactor = 0;
 
-        for (String queryTerm : searchQuery){
+        for (String queryTerm : searchQuery) {
             if (!documentTerms.contains(queryTerm)) continue;
             similarityFactor += termWeights.get(queryTerm);
         }
@@ -121,31 +121,31 @@ public class Retriever {
     private static boolean webpageContainsAllPhrases(DocumentRecord record,
                                                      List<List<String>> unstemmedPhrases,
                                                      List<List<String>> stemmedPhrases,
-                                                     boolean exactPhraseSearch){
+                                                     boolean exactPhraseSearch) {
         // Exact phrase search
-        if (exactPhraseSearch){
-            for (List<String> phrase : unstemmedPhrases){
+        if (exactPhraseSearch) {
+            for (List<String> phrase : unstemmedPhrases) {
                 if (webpageSectionDoesNotContainsPhrase(record.titleWordLocations(), phrase) &&
-                    webpageSectionDoesNotContainsPhrase(record.bodyWordLocations(), phrase)) return false;
+                        webpageSectionDoesNotContainsPhrase(record.bodyWordLocations(), phrase)) return false;
             }
         }
 
         // Inexact phrase search with stemmed doc words
         else {
-            for (List<String> phrase : stemmedPhrases){
+            for (List<String> phrase : stemmedPhrases) {
                 if (webpageSectionDoesNotContainsPhrase(record.stemmedTitleWordLocations(), phrase) &&
-                    webpageSectionDoesNotContainsPhrase(record.stemmedBodyWordLocations(), phrase)) return false;
+                        webpageSectionDoesNotContainsPhrase(record.stemmedBodyWordLocations(), phrase)) return false;
             }
         }
 
         return true;
     }
 
-    private static boolean webpageSectionDoesNotContainsPhrase(Map<String, Set<Long>> wordLocations, List<String> phrase){
+    private static boolean webpageSectionDoesNotContainsPhrase(Map<String, Set<Long>> wordLocations, List<String> phrase) {
         if (phrase.isEmpty()) return false;
 
         List<Set<Long>> phraseWordLocationsInDoc = new ArrayList<>();  // e.g. [(45, 123), (46), (47, 1239)]
-        for (String word : phrase){
+        for (String word : phrase) {
             // Doc does not contain all the words in the phrase
             if (!wordLocations.containsKey(word))
                 return true;
@@ -185,11 +185,11 @@ public class Retriever {
         return false;
     }
 
-    private static boolean webpageDoesNotContainExcludedTerms(DocumentRecord record, List<String> excludedTerms){
+    private static boolean webpageDoesNotContainExcludedTerms(DocumentRecord record, List<String> excludedTerms) {
         var titleTerms = record.titleTermFrequencies().keySet();
         var bodyTerms = record.bodyTermFrequencies().keySet();
 
-        for (String term : excludedTerms){
+        for (String term : excludedTerms) {
             if (titleTerms.contains(term) || bodyTerms.contains(term))
                 return false;
         }

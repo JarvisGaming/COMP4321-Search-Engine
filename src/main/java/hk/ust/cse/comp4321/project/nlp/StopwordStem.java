@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 
 public class StopwordStem {
-    private final PorterStemmer  stemmer;
+    private final PorterStemmer stemmer;
     private final Set<String> stopwords;
 
     public StopwordStem() {

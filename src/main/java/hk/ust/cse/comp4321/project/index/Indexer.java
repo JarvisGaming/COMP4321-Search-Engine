@@ -9,18 +9,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Indexer {
-    public static Map<String, Long> getDocumentFrequencies(RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex){
+    public static Map<String, Long> getDocumentFrequencies(RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex) {
         return invertedIndex.stream()
-            .map(entry -> {
-                String term = entry.getKey();
-                TreeSet<Pair<Integer, Long>> postings = entry.getValue();
-                long df = postings.stream()
-                    .map(Pair::getLeft)
-                    .distinct()
-                    .count();
-                return new AbstractMap.SimpleEntry<>(term, df);
-            })
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .map(entry -> {
+                    String term = entry.getKey();
+                    TreeSet<Pair<Integer, Long>> postings = entry.getValue();
+                    long df = postings.stream()
+                            .map(Pair::getLeft)
+                            .distinct()
+                            .count();
+                    return new AbstractMap.SimpleEntry<>(term, df);
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     public static void populateTermWeights() throws RocksDBException {
@@ -43,13 +43,13 @@ public class Indexer {
             DocumentRecord record = entry.getValue();
 
             computeAndStoreWeights(record.titleTermFrequencies(),
-                titleDFs,
-                numRecords,
-                record.titleTermWeights());
+                    titleDFs,
+                    numRecords,
+                    record.titleTermWeights());
             computeAndStoreWeights(record.bodyTermFrequencies(),
-                bodyDFs,
-                numRecords,
-                record.bodyTermWeights());
+                    bodyDFs,
+                    numRecords,
+                    record.bodyTermWeights());
 
             // Update RecordIndex with new record with term weights
             recordIndex.put(documentID, record);
