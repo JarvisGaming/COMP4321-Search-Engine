@@ -177,10 +177,11 @@ public class Crawler {
                     System.out.println("Unmodified: " + record.url());
                 } else {
                     if (existingOpt.isPresent()) {
+                        DocumentRecord old = existingOpt.get();
                         recordsUpdated.incrementAndGet();
 
-                        deleteInvertedIndex(docId, record.stemmedTitleWordLocations(), titleInvertedIndex);
-                        deleteInvertedIndex(docId, record.stemmedBodyWordLocations(), bodyInvertedIndex);
+                        deleteInvertedIndex(docId, old.stemmedTitleWordLocations(), titleInvertedIndex);
+                        deleteInvertedIndex(docId, old.stemmedBodyWordLocations(), bodyInvertedIndex);
 
                         System.out.println("Updated: " + record.url());
                     } else {
@@ -221,7 +222,9 @@ public class Crawler {
         });
     }
 
-    private static void deleteInvertedIndex(Integer documentID, Map<String, Set<Long>> wordLocations, RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex) {
+    private static void deleteInvertedIndex(Integer documentID,
+                                            Map<String, Set<Long>> wordLocations,
+                                            RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex) {
         wordLocations.forEach((word, _) -> {
             try {
                 Optional<TreeSet<Pair<Integer, Long>>> opt = invertedIndex.get(word);
