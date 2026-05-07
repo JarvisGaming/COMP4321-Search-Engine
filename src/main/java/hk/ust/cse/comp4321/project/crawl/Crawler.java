@@ -181,7 +181,7 @@ public class Crawler {
 
                         deleteInvertedIndex(docId, record.stemmedTitleWordLocations(), titleInvertedIndex);
                         deleteInvertedIndex(docId, record.stemmedBodyWordLocations(), bodyInvertedIndex);
-                        
+
                         System.out.println("Updated: " + record.url());
                     } else {
                         recordsAdded.incrementAndGet();
