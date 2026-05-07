@@ -228,9 +228,6 @@ public class Crawler {
     private static void removeDocumentCompletely(
             Integer documentID,
             RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex) {
-
-        System.out.println("  [FULL CLEAN] Removing doc " + documentID + " from entire index");
-
         try {
             for (String word : invertedIndex.keys()) {
                 Optional<TreeSet<Pair<Integer, Long>>> opt = invertedIndex.get(word);
@@ -242,15 +239,13 @@ public class Crawler {
                 if (changed) {
                     if (postings.isEmpty()) {
                         invertedIndex.delete(word);
-                        System.out.println("    [FULL CLEAN] Deleted word: " + word);
                     } else {
                         invertedIndex.put(word, postings);
-                        System.out.println("    [FULL CLEAN] Cleaned word: " + word);
                     }
                 }
             }
-        } catch (Exception e) {
-            System.err.println("    [FULL CLEAN] Partial failure: " + e.getMessage());
+        } catch (Exception ignored) {
+            System.err.println("warning: failed to remove document with ID for modification: " + documentID);
         }
     }
 
