@@ -180,6 +180,9 @@ public class Crawler {
                         DocumentRecord old = existingOpt.get();
                         recordsUpdated.incrementAndGet();
 
+                        removeDocumentCompletely(docId, titleInvertedIndex);
+                        removeDocumentCompletely(docId, bodyInvertedIndex);
+
                         deleteInvertedIndex(docId, old.stemmedTitleWordLocations(), titleInvertedIndex);
                         deleteInvertedIndex(docId, old.stemmedBodyWordLocations(), bodyInvertedIndex);
 
@@ -220,6 +223,35 @@ public class Crawler {
                 System.err.println("warning: failed to update inverted index for document with ID: " + documentID);
             }
         });
+    }
+
+    private static void removeDocumentCompletely(
+            Integer documentID,
+            RocksDatabaseMap<String, TreeSet<Pair<Integer, Long>>> invertedIndex) {
+
+        System.out.println("  [FULL CLEAN] Removing doc " + documentID + " from entire index");
+
+        try {
+            for (String word : invertedIndex.keys()) {
+                Optional<TreeSet<Pair<Integer, Long>>> opt = invertedIndex.get(word);
+                if (opt.isEmpty()) continue;
+
+                TreeSet<Pair<Integer, Long>> postings = opt.get();
+                boolean changed = postings.removeIf(pair -> pair.getLeft().equals(documentID));
+
+                if (changed) {
+                    if (postings.isEmpty()) {
+                        invertedIndex.delete(word);
+                        System.out.println("    [FULL CLEAN] Deleted word: " + word);
+                    } else {
+                        invertedIndex.put(word, postings);
+                        System.out.println("    [FULL CLEAN] Cleaned word: " + word);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("    [FULL CLEAN] Partial failure: " + e.getMessage());
+        }
     }
 
     private static void deleteInvertedIndex(Integer documentID,

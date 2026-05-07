@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -58,6 +60,10 @@ public class RocksDatabaseMap<K extends Serializable, V extends Serializable> {
 
     public void delete(K key) throws SerializationException, RocksDBException {
         database.delete(SerializationUtils.serialize(key));
+    }
+
+    public Set<K> keys() {
+        return this.stream().map(Map.Entry::getKey).collect(Collectors.toUnmodifiableSet());
     }
 
     public Optional<V> get(K key) throws ClassCastException, SerializationException, RocksDBException {
