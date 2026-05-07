@@ -229,11 +229,13 @@ public class Crawler {
 
                 TreeSet<Pair<Integer, Long>> postings = opt.get();
                 // Remove all entries in the postings for this document
-                postings.removeIf(pair -> pair.getLeft().equals(documentID));
-                if (postings.isEmpty()) {
-                    invertedIndex.delete(word);
-                } else {
-                    invertedIndex.put(word, postings);
+                boolean changed = postings.removeIf(pair -> pair.getLeft().equals(documentID));
+                if (changed) {
+                    if (postings.isEmpty()) {
+                        invertedIndex.delete(word);
+                    } else {
+                        invertedIndex.put(word, postings);
+                    }
                 }
             } catch (RocksDBException e) {
                 System.err.println("warning: failed to delete inverted index (modification) for document with ID: " + documentID);
